@@ -13,7 +13,19 @@ black:
   script:
   - black --check .
 
+mypy:
+  stage: Static Analysis
+  script:
+  - mypy -p gitdraw
+
+pylint:
+  stage: Static Analysis
+  allow_failure: true
+  script:
+  - pylint tests
+  - pylint gitdraw
+
 pytest:
   stage: Test
   script:
-  - pytest
+  - pytest --cov=gitdraw
