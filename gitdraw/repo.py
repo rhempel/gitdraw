@@ -1,17 +1,17 @@
 from string import ascii_uppercase
 from dataclasses import dataclass
-from typing import Any, List
+from typing import Any, List, Generator
 
 
-def _name_gen():
+def _name_gen() -> Generator[str, None, None]:
     prefix = ""
     while True:
         for char in ascii_uppercase:
             yield f"{prefix}{char}"
-        prefix = next(commit_name())
+        prefix = next(_name_gen())
 
 
-def _idx_gen():
+def _idx_gen() -> Generator[int, None, None]:
     i = 0
     while True:
         yield i
@@ -39,7 +39,7 @@ class Branch:
     commits: List[Any]
 
     @property
-    def last_commit(self) -> Any:
+    def last_commit(self) -> Commit:
         if not self.commits:
             return self.branch_commit
         return self.commits[-1]

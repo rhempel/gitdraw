@@ -2,7 +2,7 @@ from collections import namedtuple
 from abc import ABC, abstractmethod
 from itertools import cycle
 from dataclasses import dataclass
-from typing import List
+from typing import List, TypeVar, Type, Generator
 
 from gitdraw.repo import Repo, Branch, Commit
 
@@ -62,6 +62,9 @@ class DrawingTool(ABC):
         pass
 
 
+DT = TypeVar("DT", bound=DrawingTool)
+
+
 class Drawer:
     def __init__(self):
         self._tool = None
@@ -69,8 +72,8 @@ class Drawer:
         self._commits = []
         self._colours = colours()
 
-    def draw_repo(self, repo: Repo, drawer: DrawingTool):
-        self._tool = drawer()
+    def draw_repo(self, repo: Repo, drawer: DT) -> str:
+        self._tool = drawer
 
         commits = [c for b in repo.branches.values() for c in b.commits]
         commits = sorted(commits, key=lambda x: x.idx)
@@ -122,7 +125,7 @@ class Drawer:
         )
 
 
-def colours():
+def colours() -> Generator[str, None, None]:
     main_colour, *other_colours = COLOURS
     another_colour = cycle(other_colours)
     yield main_colour

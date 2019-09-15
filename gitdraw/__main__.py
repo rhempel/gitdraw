@@ -12,7 +12,7 @@ if __name__ == "__main__":
     r.merge("test")  # Todo see commit but not merge
 
     d = Drawer()
-    o = d.draw_repo(r, SvgDrawingTool)
+    o = d.draw_repo(r, SvgDrawingTool())
 
     with open("img.svg", "w") as f:
         f.write(o)

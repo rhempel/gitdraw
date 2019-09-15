@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from jinja2 import Environment, PackageLoader, select_autoescape
-from typing import List
+from typing import List, Tuple, Optional
 
 from gitdraw.draw import DrawingTool, DrawBranch, DrawCommit, DrawPoint, DrawMerge, SEP
 
@@ -10,20 +10,28 @@ env = Environment(
 )
 
 
+class PathError(Exception):
+    pass
+
+
 @dataclass
 class SvgPath:
     move: DrawPoint
-    line: DrawPoint = None
-    curve: (DrawPoint, DrawPoint, DrawPoint) = None
+    line: Optional[DrawPoint] = None
+    curve: Optional[Tuple[DrawPoint, DrawPoint, DrawPoint]] = None
 
     @property
-    def svg(self):
+    def svg(self) -> str:
         m = self.move
+
         if self.line:
             ln = self.line
             return f"M{m.x},{m.y} L{ln.x},{ln.y}"
-        c1, c2, c3 = self.curve
-        return f"M{m.x},{m.y} C{c1.x},{c1.y} {c2.x},{c2.y} {c3.x},{c3.y}"
+        elif self.curve:
+            c1, c2, c3 = self.curve
+            return f"M{m.x},{m.y} C{c1.x},{c1.y} {c2.x},{c2.y} {c3.x},{c3.y}"
+        else:
+            raise PathError("SvgPath must have specify 'line' or 'curve'")
 
 
 @dataclass
@@ -45,10 +53,9 @@ class SvgLabel:
 
 @dataclass
 class SvgBranch(DrawBranch):
-    merges: List[SvgMerge]
     commits: List[DrawCommit] = field(default_factory=list)
-    max_y: int = None
-    max_x: int = None
+    max_y: int = 0
+    max_x: int = 0
 
     @property
     def label(self) -> SvgLabel:
@@ -73,7 +80,7 @@ class SvgBranch(DrawBranch):
         return SvgPath(line_start, line=line_end)
 
     @property
-    def end_path(self) -> SvgPath:
+    def end_path(self) -> Optional[SvgPath]:
         last_commit = self.commits[-1]
         if any(last_commit.position == m.start for m in self.merges):
             # If the last commit was merged don't extend the branch
@@ -107,7 +114,7 @@ class SvgDrawingTool(DrawingTool):
         self._max_y = max([self._max_y, commit.position.y])
         self._max_x = max([self._max_x, commit.position.x])
 
-    def render(self):
+    def render(self) -> str:
         for branch in self._branches:
             branch.max_y = self._max_y + SEP
             branch.max_x = self._max_x + SEP
