@@ -1,5 +1,5 @@
 import pytest
-from repo import Repo, BranchException
+from .context import Repo, BranchException
 
 
 @pytest.fixture
@@ -54,7 +54,7 @@ def test_first_branch(repo, master):
     assert repo.branches["test/branch"] == branch_1
 
 
-def test_duplicate_branch(repo, master):
+def test_duplicate_branch(repo):
     with pytest.raises(BranchException):
         repo.branch(repo.MAIN_BRANCH)
 

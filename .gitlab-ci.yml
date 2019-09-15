@@ -6,8 +6,14 @@ before_script:
 
 stages:
   - Static Analysis
+  - Test
 
 black:
   stage: Static Analysis
   script:
   - black --check .
+
+pytest:
+  stage: Test
+  script:
+  - pytest
