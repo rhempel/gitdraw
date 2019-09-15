@@ -59,6 +59,3 @@ def test_duplicate_branch(repo, master):
         repo.branch(repo.MAIN_BRANCH)
 
     assert len(repo.branches) == 1
-
-
-def test_first_checkout(repo, )

@@ -70,13 +70,10 @@ class Repo:
         return self._branch_from_name(name)
 
     def commit(self, message=None):
-        message = '' if message is None else message
+        message = "" if message is None else message
         parent = self._active_branch.last_commit
         parents = [] if parent is None else [parent]
-        commit = Commit(next(self._commit_name),
-                        message,
-                        parents,
-                        self._active_branch)
+        commit = Commit(next(self._commit_name), message, parents, self._active_branch)
         self._active_branch.commits.append(commit)
         return commit
 
@@ -84,8 +81,10 @@ class Repo:
         branch = self._branch_from_name(branch_name)
         if branch == self._active_branch:
             raise BranchException(f"Cannot merge into self")
-        commit = Commit(next(self._commit_name),
-                        f"Merge {branch.name} -> {self._active_branch.name}",
-                        [self._active_branch.last_commit, branch.last_commit],
-                        self._active_branch)
+        commit = Commit(
+            next(self._commit_name),
+            f"Merge {branch.name} -> {self._active_branch.name}",
+            [self._active_branch.last_commit, branch.last_commit],
+            self._active_branch,
+        )
         self._active_branch.commits.append(commit)
