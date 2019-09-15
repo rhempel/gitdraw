@@ -114,3 +114,14 @@ def test_first_merge(repo, master):
 def test_dupe_merge(repo):
     with pytest.raises(BranchException):
         repo.merge("master")
+
+
+def test_empty_branch(repo):
+    repo.branch("test/branch")
+    with pytest.raises(BranchException):
+        repo.merge("test/branch")
+
+    repo.checkout("test/branch")
+    repo.commit()
+    repo.checkout("master")
+    repo.merge("test/branch")

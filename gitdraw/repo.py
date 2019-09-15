@@ -35,6 +35,10 @@ class Branch:
             return self.branch_commit
         return self.commits[-1]
 
+    @property
+    def can_merge(self):
+        return len(self.commits) > 0
+
 
 class Repo:
     MAIN_BRANCH = "master"
@@ -81,6 +85,8 @@ class Repo:
         branch = self._branch_from_name(branch_name)
         if branch == self._active_branch:
             raise BranchException(f"Cannot merge into self")
+        if not branch.can_merge:
+            raise BranchException(f"Branch cannot be merged")
         commit = Commit(
             next(self._commit_name),
             f"Merge {branch.name} -> {self._active_branch.name}",
