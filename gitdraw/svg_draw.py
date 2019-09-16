@@ -32,7 +32,7 @@ class SvgPath:
             line = self.line
             return f"M{move.x},{move.y} L{line.x},{line.y}"
 
-        c1, c2, c3 = self.curve  # pylint: disable=C0103,E0633
+        c1, c2, c3 = self.curve  # type: ignore pylint: disable=C0103,E0633
         return f"M{move.x},{move.y} C{c1.x},{c1.y} {c2.x},{c2.y} {c3.x},{c3.y}"
 
 
