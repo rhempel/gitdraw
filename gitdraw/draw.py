@@ -29,18 +29,24 @@ COLOURS = [
 
 @dataclass
 class DrawPoint:
+    """Coordinates to a location"""
+
     x: int
     y: int
 
 
 @dataclass
 class DrawMerge:
+    """The merge line drawn from a commit in one branch to another"""
+
     start: DrawPoint
     end: DrawPoint
 
 
 @dataclass
 class DrawBranch:
+    """A branch line (and associated merges into other branches)"""
+
     name: str
     start: DrawPoint
     colour: str
@@ -49,29 +55,35 @@ class DrawBranch:
 
 @dataclass
 class DrawCommit:
+    """The position of a commit"""
+
     name: str
     position: DrawPoint
     branch: DrawBranch
 
 
 class DrawingTool(ABC):
+    """A base class implementation for a tool that draws a git repo"""
+
     @abstractmethod
     def branch(self, branch: DrawBranch):
-        pass
+        """Adds a branch into the Repo"""
 
     @abstractmethod
     def commit(self, commit: DrawCommit):
-        pass
+        """Adds a commit into the Repo"""
 
     @abstractmethod
-    def render(self):
-        pass
+    def render(self) -> str:
+        """Draws the git repo"""
 
 
 DT = TypeVar("DT", bound=DrawingTool)
 
 
-class Drawer:
+class Drawer:  # pylint: disable=R0903
+    """Uses a `DrawingTool` to draw a `Repo`"""
+
     def __init__(self):
         self._tool = None
         self._branches = {}
@@ -79,6 +91,11 @@ class Drawer:
         self._colours = colours()
 
     def draw_repo(self, repo: Repo, drawer: DT) -> str:
+        """Draw a picture of a `Repo` using a `DrawingTool
+
+        :param repo: The `Repo` to draw
+        :param drawer: The `DrawingTool` to use to draw it
+        """
         self._tool = drawer
 
         commits = [c for b in repo.branches.values() for c in b.commits]
@@ -86,10 +103,10 @@ class Drawer:
 
         for commit in commits:
             if commit.branch.name not in self._branches:
-                self.stage_branch(commit.branch)
+                self._stage_branch(commit.branch)
             if len(commit.parents) == 2:
-                self.add_merge(commit)
-            self.stage_commit(commit)
+                self._add_merge(commit)
+            self._stage_commit(commit)
 
         for _, branch in self._branches.items():
             self._tool.branch(branch)
@@ -98,7 +115,11 @@ class Drawer:
 
         return self._tool.render()
 
-    def stage_branch(self, branch: Branch):
+    def _stage_branch(self, branch: Branch):
+        """Create a `DrawBranch` object ready for adding to the `DrawingTool`
+
+        :param branch: The `Branch` used to create the `DrawingBranch`
+        """
         branch_commit = branch.branch_commit
         # master doesn't have a branch commit, just it's first commit
         branch_commit = branch_commit if branch_commit else branch.commits[0]
@@ -111,7 +132,15 @@ class Drawer:
         )
         self._branches[branch.name] = draw_branch
 
-    def add_merge(self, commit: Commit):
+    def _add_merge(self, commit: Commit):
+        """Add a `DrawMerge` to a `DrawBranch`
+
+        Given a commit associated with a Merge, find the parent commit
+        in the branch being merged. Use those two commit to represent
+        the `DrawMerge`.
+
+        :param commit: The merge commit
+        """
         merge_commit, = [p for p in commit.parents if p.branch != commit.branch]
         draw_branch = self._branches[merge_commit.branch.name]
         draw_branch.merges.append(
@@ -121,7 +150,11 @@ class Drawer:
             )
         )
 
-    def stage_commit(self, commit: Commit):
+    def _stage_commit(self, commit: Commit):
+        """Create a `DrawCommit` ready to be added to the `DrawingTool`
+
+        :param commit: The commit to be added
+        """
         self._commits.append(
             DrawCommit(
                 commit.name,
@@ -132,6 +165,11 @@ class Drawer:
 
 
 def colours() -> Generator[str, None, None]:
+    """Generate a repeating list of colours to use for branches
+
+    The first colour is reserved exclusively for the main branch
+    all other colours can be repeated.
+    """
     main_colour, *other_colours = COLOURS
     another_colour = cycle(other_colours)
     yield main_colour

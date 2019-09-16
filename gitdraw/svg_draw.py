@@ -13,17 +13,25 @@ ENV = Environment(
 
 
 class PathError(Exception):
-    pass
+    """Raised for errors with `SvgPath"""
 
 
 @dataclass
 class SvgPath:
+    """Representation of an SVG Path object.
+
+    For example:
+    * Lines: M0,10 L20,20
+    * Curves: C0,10 C10,10 10,20 20,20
+    """
+
     move: DrawPoint
     line: Optional[DrawPoint] = None
     curve: Optional[Tuple[DrawPoint, DrawPoint, DrawPoint]] = None
 
     @property
     def svg(self) -> str:
+        """Return the SVG representation of the path"""
         if (self.line is None) == (self.curve is None):
             raise PathError("SvgPath must have specify 'line' or 'curve'")
 
@@ -38,8 +46,11 @@ class SvgPath:
 
 @dataclass
 class SvgMerge(DrawMerge):
+    """A curved SVG path representing a merge between branches"""
+
     @property
     def path(self) -> SvgPath:
+        """The Path representing the Merge"""
         sx, sy = self.start.x, self.start.y  # pylint: disable=C0103
         ey = self.end.y  # pylint: disable=C0103
         return SvgPath(
@@ -49,18 +60,23 @@ class SvgMerge(DrawMerge):
 
 @dataclass
 class SvgLabel:
+    """The position an size of an SVG label"""
+
     position: DrawPoint
     width: int
 
 
 @dataclass
 class SvgBranch(DrawBranch):
+    """SVG representation of commits (and lines) of a branch"""
+
     commits: List[DrawCommit] = field(default_factory=list)
     max_y: int = 0
     max_x: int = 0
 
     @property
     def label(self) -> SvgLabel:
+        """The position and size of the branches label"""
         first_commit = self.commits[0]  # pylint: disable=E1136
         return SvgLabel(
             DrawPoint(self.max_x, first_commit.position.y), len(self.name) * 7
@@ -68,6 +84,10 @@ class SvgBranch(DrawBranch):
 
     @property
     def start_path(self) -> SvgPath:
+        """The initial part of the branch
+
+        This is a line drawn from where the branch starts to its
+        first commit"""
         first = self.commits[0]  # pylint: disable=E1136
         fx, fy = (first.position.x, first.position.y)  # pylint: disable=C0103
         sy = self.start.y  # pylint: disable=C0103
@@ -77,12 +97,18 @@ class SvgBranch(DrawBranch):
 
     @property
     def middle_path(self) -> SvgPath:
+        """The middle part of the branch (connecting first and last commit)"""
         line_start = self.commits[0].position  # pylint: disable=E1136
         line_end = self.commits[-1].position  # pylint: disable=E1136
         return SvgPath(line_start, line=line_end)
 
     @property
     def end_path(self) -> Optional[SvgPath]:
+        """The end of the branch
+
+        A branch only has an end path if it has unmerged commits. Where
+        all commits are merged, the last commit has a line drawn from
+        it as part of the associated merge."""
         last_commit = self.commits[-1]  # pylint: disable=E1136
         if any(last_commit.position == m.start for m in self.merges):
             # If the last commit was merged don't extend the branch
@@ -93,6 +119,8 @@ class SvgBranch(DrawBranch):
 
 
 class SvgDrawingTool(DrawingTool):
+    """A tool for creating an SVG image representing a git repository"""
+
     def __init__(self):
         super(SvgDrawingTool, self).__init__()
         self._branches = []
@@ -101,6 +129,7 @@ class SvgDrawingTool(DrawingTool):
         self._max_x = 0
 
     def branch(self, branch: DrawBranch):
+        """Add a branch to be drawn"""
         self._branches.append(
             SvgBranch(
                 merges=[SvgMerge(m.start, m.end) for m in branch.merges],
@@ -111,12 +140,14 @@ class SvgDrawingTool(DrawingTool):
         )
 
     def commit(self, commit: DrawCommit):
+        """Add a commit to be drawn"""
         branch, = [b for b in self._branches if b.name == commit.branch.name]
         branch.commits.append(commit)
         self._max_y = max([self._max_y, commit.position.y])
         self._max_x = max([self._max_x, commit.position.x])
 
     def render(self) -> str:
+        """Draw all branches and commits added so far"""
         for branch in self._branches:
             branch.max_y = self._max_y + SEP
             branch.max_x = self._max_x + SEP
