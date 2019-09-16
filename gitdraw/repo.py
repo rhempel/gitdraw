@@ -12,11 +12,11 @@ from typing import Any, List, Generator
 
 def _name_gen() -> Generator[str, None, None]:
     prefix = ""
-    n = _name_gen()
+    names = _name_gen()
     while True:
         for char in ascii_uppercase:
             yield f"{prefix}{char}"
-        prefix = next(n)
+        prefix = next(names)  # pylint: disable=R1708
 
 
 def _idx_gen() -> Generator[int, None, None]:

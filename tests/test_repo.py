@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=W0621
 """Testing of the `Repo` object"""
 import pytest
 from .context import Repo, BranchException
@@ -6,11 +7,13 @@ from .context import Repo, BranchException
 
 @pytest.fixture
 def repo():
+    """An empty `Repo` used by tests"""
     return Repo()
 
 
 @pytest.fixture
 def master(repo):
+    """The master branch in `Repo` used by tests"""
     return repo.branches[Repo.MAIN_BRANCH]
 
 
@@ -53,8 +56,8 @@ def test_two_commits(repo, master):
 def test_100_commits(repo):
     """Test that names and IDs remain unique over lots of commits"""
     commits = [repo.commit() for _ in range(100)]
-    for ii, commit in enumerate(commits):
-        for other_commit in commits[ii + 1 :]:
+    for index, commit in enumerate(commits):
+        for other_commit in commits[index + 1 :]:
             assert commit.idx != other_commit.idx
             assert commit.name != other_commit.name
 

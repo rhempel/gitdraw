@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 """A concrete `DrawingTool` for creating SVG graphs"""
 from dataclasses import dataclass, field
-from jinja2 import Environment, PackageLoader, select_autoescape
 from typing import List, Tuple, Optional
+from jinja2 import Environment, PackageLoader, select_autoescape
 
 from gitdraw.draw import DrawingTool, DrawBranch, DrawCommit, DrawPoint, DrawMerge, SEP
 
-env = Environment(
+ENV = Environment(
     loader=PackageLoader("gitdraw", "templates"),
     autoescape=select_autoescape(["html", "xml"]),
 )
@@ -24,24 +24,24 @@ class SvgPath:
 
     @property
     def svg(self) -> str:
-        m = self.move
-
-        if self.line:
-            ln = self.line
-            return f"M{m.x},{m.y} L{ln.x},{ln.y}"
-        elif self.curve:
-            c1, c2, c3 = self.curve
-            return f"M{m.x},{m.y} C{c1.x},{c1.y} {c2.x},{c2.y} {c3.x},{c3.y}"
-        else:
+        if (self.line is None) == (self.curve is None):
             raise PathError("SvgPath must have specify 'line' or 'curve'")
+
+        move = self.move
+        if self.line:
+            line = self.line
+            return f"M{move.x},{move.y} L{line.x},{line.y}"
+
+        c1, c2, c3 = self.curve  # pylint: disable=C0103
+        return f"M{move.x},{move.y} C{c1.x},{c1.y} {c2.x},{c2.y} {c3.x},{c3.y}"
 
 
 @dataclass
 class SvgMerge(DrawMerge):
     @property
     def path(self) -> SvgPath:
-        sx, sy = self.start.x, self.start.y
-        ey = self.end.y
+        sx, sy = self.start.x, self.start.y  # pylint: disable=C0103
+        ey = self.end.y  # pylint: disable=C0103
         return SvgPath(
             self.end, curve=(DrawPoint(sx, ey), DrawPoint(sx, ey), DrawPoint(sx, sy))
         )
@@ -69,8 +69,11 @@ class SvgBranch(DrawBranch):
     @property
     def start_path(self) -> SvgPath:
         first_commit = self.commits[0]
-        fx, fy = first_commit.position.x, first_commit.position.y
-        sy = self.start.y
+        fx, fy = (
+            first_commit.position.x,
+            first_commit.position.y,
+        )  # pylint: disable=C0103
+        sy = self.start.y  # pylint: disable=C0103
         return SvgPath(
             self.start, curve=(DrawPoint(fx, sy), DrawPoint(fx, sy), DrawPoint(fx, fy))
         )
@@ -96,7 +99,7 @@ class SvgDrawingTool(DrawingTool):
     def __init__(self):
         super(SvgDrawingTool, self).__init__()
         self._branches = []
-        self._template = env.get_template("git_svg.j2")
+        self._template = ENV.get_template("git_svg.j2")
         self._max_y = 0
         self._max_x = 0
 

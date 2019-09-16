@@ -5,11 +5,10 @@ A concrete implementation of the `DrawingTool` can be passed
 to the `Drawer` to draw a graphical representation of the
 git `Repo`
 """
-from collections import namedtuple
 from abc import ABC, abstractmethod
 from itertools import cycle
 from dataclasses import dataclass
-from typing import List, TypeVar, Type, Generator
+from typing import List, TypeVar, Generator
 
 from gitdraw.repo import Repo, Branch, Commit
 
@@ -137,4 +136,4 @@ def colours() -> Generator[str, None, None]:
     another_colour = cycle(other_colours)
     yield main_colour
     while True:
-        yield next(another_colour)
+        yield next(another_colour)  # pylint: disable=R1708
