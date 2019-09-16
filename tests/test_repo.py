@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+"""Testing of the `Repo` object"""
 import pytest
 from .context import Repo, BranchException
 
@@ -9,10 +11,11 @@ def repo():
 
 @pytest.fixture
 def master(repo):
-    return repo.branches[repo.MAIN_BRANCH]
+    return repo.branches[Repo.MAIN_BRANCH]
 
 
 def test_blank_repo(repo, master):
+    """Test a new `Repo` object is as expected"""
     assert master.commits == [master.last_commit]
     assert master.name == repo.MAIN_BRANCH
     assert master.branch_commit is None
@@ -24,6 +27,7 @@ def test_blank_repo(repo, master):
 
 
 def test_first_commit(repo, master):
+    """Test a commit can be made to the `Repo`"""
     initial_commit = master.last_commit
     first_commit = repo.commit()
 
@@ -36,6 +40,7 @@ def test_first_commit(repo, master):
 
 
 def test_two_commits(repo, master):
+    """Test more than one commit can be made to the `Repo`"""
     initial_commit = master.last_commit
     commit_a = repo.commit()
     commit_b = repo.commit()
@@ -46,10 +51,16 @@ def test_two_commits(repo, master):
 
 
 def test_100_commits(repo):
-    [repo.commit() for _ in range(100)]
+    """Test that names and IDs remain unique over lots of commits"""
+    commits = [repo.commit() for _ in range(100)]
+    for ii, commit in enumerate(commits):
+        for other_commit in commits[ii + 1 :]:
+            assert commit.idx != other_commit.idx
+            assert commit.name != other_commit.name
 
 
 def test_first_branch(repo, master):
+    """Test that a new branch can be created on the `Repo`"""
     branch_1 = repo.branch("test/branch")
 
     assert len(repo.branches) == 2
@@ -59,13 +70,15 @@ def test_first_branch(repo, master):
 
 
 def test_duplicate_branch(repo):
+    """Test that it's not possible to create branches with the same name"""
     with pytest.raises(BranchException):
-        repo.branch(repo.MAIN_BRANCH)
+        repo.branch(Repo.MAIN_BRANCH)
 
     assert len(repo.branches) == 1
 
 
 def test_first_checkout(repo):
+    """Test that it is possible to checkout a branch"""
     branch_1 = repo.branch("test/branch")
     repo.checkout("test/branch")
     new_commit = repo.commit()
@@ -75,6 +88,7 @@ def test_first_checkout(repo):
 
 
 def test_multiple_checkouts(repo, master):
+    """Test multiple checkouts of different branches"""
     commit_m1 = master.last_commit
     branch1 = repo.branch("test/branch")
     commit_m2 = repo.commit()
@@ -94,11 +108,13 @@ def test_multiple_checkouts(repo, master):
 
 
 def test_failed_checkout(repo):
+    """Test checkout of a non-existent branch fails"""
     with pytest.raises(BranchException):
         repo.checkout("bad/branch")
 
 
 def test_first_merge(repo, master):
+    """Test that branches can be merged"""
     first_commit = master.last_commit
     repo.branch("test/branch")
     repo.checkout("test/branch")
@@ -112,11 +128,13 @@ def test_first_merge(repo, master):
 
 
 def test_dupe_merge(repo):
+    """Test that a branch can't be merged with itself"""
     with pytest.raises(BranchException):
         repo.merge("master")
 
 
 def test_empty_branch(repo):
+    """Test that an empty branch can't be merged but a populated one can"""
     repo.branch("test/branch")
     with pytest.raises(BranchException):
         repo.merge("test/branch")

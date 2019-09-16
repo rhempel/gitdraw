@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+"""A concrete `DrawingTool` for creating SVG graphs"""
 from dataclasses import dataclass, field
 from jinja2 import Environment, PackageLoader, select_autoescape
 from typing import List, Tuple, Optional

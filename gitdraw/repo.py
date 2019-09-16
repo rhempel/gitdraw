@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+"""A basic representation of a git repository
+
+Take a basic set of git commands and construct
+a lightweight reprenetation of the corresponding
+repository
+"""
 from string import ascii_uppercase
 from dataclasses import dataclass
 from typing import Any, List, Generator
@@ -5,10 +12,11 @@ from typing import Any, List, Generator
 
 def _name_gen() -> Generator[str, None, None]:
     prefix = ""
+    n = _name_gen()
     while True:
         for char in ascii_uppercase:
             yield f"{prefix}{char}"
-        prefix = next(_name_gen())
+        prefix = next(n)
 
 
 def _idx_gen() -> Generator[int, None, None]:

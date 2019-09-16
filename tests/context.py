@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+"""Common testing environment for use with pytest"""
 import os
 import sys
 

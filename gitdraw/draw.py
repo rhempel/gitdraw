@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+"""Generic class for drawing git graphs
+
+A concrete implementation of the `DrawingTool` can be passed
+to the `Drawer` to draw a graphical representation of the
+git `Repo`
+"""
 from collections import namedtuple
 from abc import ABC, abstractmethod
 from itertools import cycle
