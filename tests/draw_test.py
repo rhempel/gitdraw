@@ -28,6 +28,7 @@ class MockDrawingTool(DrawingTool):
 
 @pytest.fixture
 def drawing_tool():
+    """A concrete mocked out `DrawingTool`"""
     return MockDrawingTool()
 
 
@@ -107,7 +108,7 @@ def test_drawing_a_merge(drawer, drawing_tool, repo):
     assert len(drawing_tool.branches) == 2
     assert len(drawing_tool.commits) == 3
 
-    assert len(drawing_tool.branches[0].merges) == 0
+    assert not drawing_tool.branches[0].merges
     assert len(drawing_tool.branches[1].merges) == 1
 
     merge_start = drawing_tool.branches[1].merges[0].start
