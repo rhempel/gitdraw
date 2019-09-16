@@ -6,3 +6,9 @@ import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from gitdraw.repo import Repo, BranchException  # pylint: disable=C0413,W0611
+from gitdraw.draw import (
+    DrawingTool,
+    Drawer,
+    DrawBranch,
+    DrawCommit,
+)  # pylint: disable=C0413,W0611
