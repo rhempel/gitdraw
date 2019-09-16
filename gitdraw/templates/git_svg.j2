@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-10 -10 488 970">
+<style type="text/css"><![CDATA[
+.branch {
+  fill: none;
+  stroke-width: 10;
+  stroke-linecap: round;
+}
+.commit {
+  fill: #fff;
+  stroke-width: 5;
+}
+.label-tag {
+  fill: #333;
+}
+.label-rect {
+  stroke: none;
+}
+.label-text {
+  font-family: Inconsolata, Consolas, monospace;
+  font-size: 14px;
+  fill: #fff;
+  stroke: none;
+}
+{% for branch in branches %}
+.branch-{{ branch.name }} {stroke: {{ branch.colour }}; fill: {{ branch.colour }}}
+{% endfor %}
+]]></style>
+<g class="merge">
+{% for branch in branches %}
+  <g class="branch-{{ branch.name }}">
+    <path class="branch" d="{{ branch.start_path.svg }}" />
+{% for merge in branch.merges %}
+    <path class="branch" d="{{ merge.path.svg }}" />
+{% endfor %}
+{% if branch.end_path != None %}
+    <path class="branch" d="{{ branch.end_path.svg }}" />
+{% endif %}
+  </g>
+{% endfor %}
+</g>
+{% for branch in branches %}
+<g class="branch-{{ branch.name }}">
+  <path class="branch" d="{{ branch.middle_path.svg }}" />
+{% for commit in branch.commits %}
+  <circle class="commit" cx="{{ commit.position.x }}" cy="{{ commit.position.y }}" r="7.5" />
+{% endfor %}
+  <g class="label-branch" transform="translate({{ branch.label.position.x }}, {{ branch.label.position.y }})">
+    <rect x="0" y="-14" width="{{ branch.label.width + 10 }}" height="24" rx="3" class="label-rect" />
+    <text x="5" y="2" textLength="{{ branch.label.width }}" class="label-text">{{ branch.name }}</text>
+  </g>
+</g>
+{% endfor %}
+</svg>
