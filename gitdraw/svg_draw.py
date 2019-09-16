@@ -32,7 +32,7 @@ class SvgPath:
             line = self.line
             return f"M{move.x},{move.y} L{line.x},{line.y}"
 
-        c1, c2, c3 = self.curve  # pylint: disable=C0103
+        c1, c2, c3 = self.curve  # pylint: disable=C0103,E0633
         return f"M{move.x},{move.y} C{c1.x},{c1.y} {c2.x},{c2.y} {c3.x},{c3.y}"
 
 
@@ -61,18 +61,15 @@ class SvgBranch(DrawBranch):
 
     @property
     def label(self) -> SvgLabel:
-        first_commit = self.commits[0]
+        first_commit = self.commits[0]  # pylint: disable=E1136
         return SvgLabel(
             DrawPoint(self.max_x, first_commit.position.y), len(self.name) * 7
         )
 
     @property
     def start_path(self) -> SvgPath:
-        first_commit = self.commits[0]
-        fx, fy = (
-            first_commit.position.x,
-            first_commit.position.y,
-        )  # pylint: disable=C0103
+        first = self.commits[0]  # pylint: disable=E1136
+        fx, fy = (first.position.x, first.position.y)  # pylint: disable=C0103
         sy = self.start.y  # pylint: disable=C0103
         return SvgPath(
             self.start, curve=(DrawPoint(fx, sy), DrawPoint(fx, sy), DrawPoint(fx, fy))
@@ -80,13 +77,13 @@ class SvgBranch(DrawBranch):
 
     @property
     def middle_path(self) -> SvgPath:
-        line_start = self.commits[0].position
-        line_end = self.commits[-1].position
+        line_start = self.commits[0].position  # pylint: disable=E1136
+        line_end = self.commits[-1].position  # pylint: disable=E1136
         return SvgPath(line_start, line=line_end)
 
     @property
     def end_path(self) -> Optional[SvgPath]:
-        last_commit = self.commits[-1]
+        last_commit = self.commits[-1]  # pylint: disable=E1136
         if any(last_commit.position == m.start for m in self.merges):
             # If the last commit was merged don't extend the branch
             return None
