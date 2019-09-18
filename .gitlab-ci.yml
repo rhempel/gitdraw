@@ -28,4 +28,4 @@ pylint:
 pytest:
   stage: Test
   script:
-  - pytest --cov=gitdraw --cov-report term-missing tests
+  - pytest --showlocals -v --cov=gitdraw --cov-branch --cov-report term-missing tests

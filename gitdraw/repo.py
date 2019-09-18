@@ -102,6 +102,10 @@ class Repo:
         except KeyError:
             raise BranchException(f"No branch named {name}")
 
+    @property
+    def main_branch(self):
+        return self._branch_from_name(self.MAIN_BRANCH)
+
     def checkout(self, branch_name: str):
         """Checkout a `Branch` that exists in the `Repo`
 

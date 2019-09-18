@@ -26,6 +26,40 @@ class MockDrawingTool(DrawingTool):
         return "rendered"
 
 
+def _commits_aligned_vertically_and_ordered_horizontally(commits):
+    for idx, commit in enumerate(commits):
+        for other_commit in commits[idx + 1 :]:
+            assert commit.position.x == other_commit.position.x
+            assert commit.position.y < other_commit.position.y
+
+
+def _branches_ordered_vertically(tool):
+    for idx, branch in enumerate(tool.branches):
+        for other_branch in tool.branches[idx + 1 :]:
+            branch_commit = next(c for c in tool.commits if c.branch == branch)
+            other_commit = next(c for c in tool.commits if c.branch == other_branch)
+            assert branch_commit.position.x < other_commit.position.x
+
+
+def _validate_merges(merges):
+    for merge in merges:
+        assert merge.start.x != merge.end.x
+        assert merge.start.y < merge.end.y
+
+
+def _validate_tool(tool, num_branches, num_commits, num_merges):
+    assert len(tool.branches) == num_branches
+    assert len(tool.commits) == sum(num_commits)
+    _branches_ordered_vertically(tool)
+
+    for branch, num_commits, num_merges in zip(tool.branches, num_commits, num_merges):
+        branch_commits = [c for c in tool.commits if c.branch == branch]
+        assert len(branch_commits) == num_commits
+        assert len(branch.merges) == num_merges
+        _commits_aligned_vertically_and_ordered_horizontally(branch_commits)
+        _validate_merges(branch.merges)
+
+
 @pytest.fixture
 def drawing_tool():
     """A concrete mocked out `DrawingTool`"""
@@ -116,3 +150,31 @@ def test_drawing_a_merge(drawer, drawing_tool, repo):
 
     assert merge_start == drawing_tool.commits[1].position
     assert merge_end == drawing_tool.commits[2].position
+
+
+def test_drawing_repo_with_multiple_merges(
+    drawer, drawing_tool, repo_with_multiple_merges, branch_names
+):
+    drawer.draw_repo(repo_with_multiple_merges, drawing_tool)
+    _validate_tool(drawing_tool, 2, [3, 3], [0, 2])
+
+
+def test_drawing_repo_main_branch_merged_into_other_branch(
+    drawer, drawing_tool, repo_main_branch_merged_into_other_branch, branch_names
+):
+    drawer.draw_repo(repo_main_branch_merged_into_other_branch, drawing_tool)
+    _validate_tool(drawing_tool, 2, [4, 3], [1, 1])
+
+
+def test_drawing_repo_with_multiple_branches(
+    drawer, drawing_tool, repo_with_multiple_branches, branch_names
+):
+    drawer.draw_repo(repo_with_multiple_branches, drawing_tool)
+    _validate_tool(drawing_tool, 3, [5, 2, 2], [0, 1, 1])
+
+
+def test_drawing_repo_with_branch_off_branch(
+    drawer, drawing_tool, repo_with_branch_off_branch, branch_names
+):
+    drawer.draw_repo(repo_with_branch_off_branch, drawing_tool)
+    _validate_tool(drawing_tool, 3, [5, 2, 2], [0, 1, 1])

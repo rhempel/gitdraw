@@ -155,11 +155,12 @@ class Drawer:  # pylint: disable=R0903
 
         :param commit: The commit to be added
         """
+
         self._commits.append(
             DrawCommit(
                 commit.name,
                 DrawPoint(commit.branch.idx * SEP, commit.idx * SEP),
-                commit.branch,
+                self._branches[commit.branch.name],
             )
         )
 
