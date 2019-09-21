@@ -133,6 +133,7 @@ class SvgDrawingTool(DrawingTool):
         self._branches.append(
             SvgBranch(
                 merges=[SvgMerge(m.start, m.end) for m in branch.merges],
+                idx=branch.idx,
                 name=branch.name,
                 start=branch.start,
                 colour=branch.colour,

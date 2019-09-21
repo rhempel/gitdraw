@@ -2,7 +2,6 @@
 # pylint: disable=W0621
 """Testing of the `Drawing` object"""
 from collections import namedtuple
-import pytest
 from pytest_steps import test_steps, optional_step
 
 from tests.context import DrawingTool, Repo, Drawer, DrawBranch, DrawCommit

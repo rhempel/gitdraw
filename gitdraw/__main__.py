@@ -12,19 +12,9 @@ from gitdraw.repo import Repo
 from gitdraw.svg_draw import SvgDrawingTool
 
 if __name__ == "__main__":
-    REPO = Repo()
-    REPO.branch("gitdraw")
-    REPO.checkout("gitdraw")
-    REPO.commit()
-    REPO.branch("feature")
-    REPO.checkout("feature")
-    REPO.commit()
-    REPO.checkout("master")
-    REPO.commit()
-    REPO.merge("gitdraw")
-
+    blank_repo = Repo()
     DRAWER = Drawer()
-    OUT = DRAWER.draw_repo(REPO, SvgDrawingTool())
+    OUT = DRAWER.draw_repo(blank_repo, SvgDrawingTool())
 
     with open("img.svg", "w") as f:
         f.write(OUT)
