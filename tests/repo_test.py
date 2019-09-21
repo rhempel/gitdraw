@@ -1,52 +1,127 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=W0621
 """Testing of the `Repo` object"""
+from functools import partial
+from collections import namedtuple
 import pytest
-from .context import Repo, BranchException
+from pytest_steps import test_steps, optional_step
+
+from tests.context import Repo, BranchException, MergeCommit
+import tests.example_repos as repos
+
+BranchInfo = namedtuple("BranchInfo", "name num_commits num_merges")
 
 
-def branches(repo, branch_names, num_branches=0):
-    branch_names = branch_names[:num_branches]
-    return [repo.main_branch] + [repo.branches[name] for name in branch_names]
+def _validate_repo(repo, branch_info):
+    """Check that a repo looks sensible
+
+    :param repo: The repo to check
+    :param branch_info: a list of BranchInfo with details for each branch
+    """
+    assert [b.name for b in repo.branches.values()] == [b.name for b in branch_info]
+
+    for name, branch in repo.branches.items():
+        info = next(b for b in branch_info if b.name == name)
+        _validate_branch(
+            branch, branch.name, branch.branch_commit, info.num_commits, info.num_merges
+        )
+
+    commits = [c for b in repo.branches.values() for c in b.commits]
+    for index, commit in enumerate(commits):
+        for other_commit in commits[index + 1 :]:
+            assert commit.idx != other_commit.idx
+            assert commit.name != other_commit.name
 
 
-def _validate_repos(repo, branch_names, num_branches, num_commits, num_merges):
-    all_branches = branches(repo, branch_names, num_branches)
+def _validate_branch(branch, name, branch_commit, num_commits, num_merges):
+    """Validate a branch has all the properties we'd expect
 
-    for branch, num_commits, num_merges in zip(all_branches, num_commits, num_merges):
-        assert len(branch.commits) == num_commits
-        assert len([c for c in branch.commits if len(c.parents) == 2]) == num_merges
+    :param branch: The branch to validate
+    :param name: The name of the branch
+    :param branch_commit: The commit the branch was created from
+    :param num_commits: The number of commits on the branch
+    :param num_merges: The number of merges into this branch
+    """
+    assert branch is not None
+    assert branch.name is name
+    assert branch.idx is not None
+    assert branch.branch_commit == branch_commit
+    assert len(branch.commits) == num_commits
+    assert num_merges == len([c for c in branch.commits if isinstance(c, MergeCommit)])
 
 
-def test_blank_repo(blank_repo):
+def _validate_commit(commit, branch, parents):
+    """Validate a commit has all the properties we'd expect
+
+    :param commit: The commit to validate
+    :param branch: The branch the commit is on
+    :param parents: The commits parent commit
+    """
+    assert commit is not None
+    assert commit.name is not None
+    assert commit.idx is not None
+    assert commit.branch == branch
+    assert commit.parents == parents
+
+
+@test_steps(
+    "Blank repository",
+    "Make a commit",
+    "Create a branch",
+    "Checkout new branch",
+    "Merge branch",
+)
+def test_basic_mainline(blank_repo):
     """Test a new `Repo` object is as expected"""
     master = blank_repo.main_branch
-    assert master.commits == [master.last_commit]
-    assert master.name == blank_repo.MAIN_BRANCH
-    assert master.branch_commit is None
+    _validate_master = partial(
+        _validate_branch, master, name=Repo.MAIN_BRANCH, branch_commit=None
+    )
+    _validate_master(num_commits=1, num_merges=0)
+    _validate_commit(master.last_commit, branch=master, parents=[])
+    yield
 
-    assert master.last_commit is not None
-    assert master.last_commit.name is not None
-    assert master.last_commit.branch == master
-    assert master.last_commit.parents == []
+    blank_repo.commit()
+    _validate_master(num_commits=2, num_merges=0)
+    _validate_commit(master.last_commit, branch=master, parents=[master.commits[0]])
+    yield
+
+    blank_repo.branch("test/branch/1")
+    first_branch = blank_repo.branches["test/branch/1"]
+    _validate_first_branch = partial(
+        _validate_branch,
+        first_branch,
+        name="test/branch/1",
+        branch_commit=master.commits[1],
+    )
+    _validate_first_branch(num_commits=0, num_merges=0)
+    yield
+
+    blank_repo.checkout("test/branch/1")
+    blank_repo.commit()
+    _validate_first_branch(num_commits=1, num_merges=0)
+    _validate_commit(
+        first_branch.commits[0],
+        branch=first_branch,
+        parents=[first_branch.branch_commit],
+    )
+    yield
+
+    blank_repo.checkout(master.name)
+    blank_repo.merge("test/branch/1")
+    _validate_master(num_commits=3, num_merges=1)
+    _validate_commit(
+        master.commits[2],
+        branch=master,
+        parents=[master.commits[1], first_branch.commits[0]],
+    )
+    yield
 
 
-def test_first_commit(repo_with_two_commit):
-    """Test a commit can be made to the `Repo`"""
-    master, = branches(repo_with_two_commit, [])
-
-    assert len(master.commits) == 2
-    assert master.branch_commit is None
-
-    assert master.commits[0] != master.commits[1]
-    assert master.commits[1].branch == master
-    assert master.commits[1].parents == [master.commits[0]]
-    assert master.commits[0].parents == []
-
-
-def test_100_commits(repo_with_100_commits):
+def test_100_commits():
     """Test that names and IDs remain unique over lots of commits"""
-    master = repo_with_100_commits.main_branch
+    repo_100_commits = repos.hundred_commits()
+    master = repo_100_commits.main_branch
 
     for index, commit in enumerate(master.commits):
         assert commit.branch == master
@@ -59,17 +134,6 @@ def test_100_commits(repo_with_100_commits):
             assert commit.name != other_commit.name
 
 
-def test_first_branch(repo_with_empty_branch, branch_names):
-    """Test that a new branch can be created on the `Repo`"""
-    repo = repo_with_empty_branch
-    branch_name, *_ = branch_names
-    branch_1 = repo.branches[branch_name]
-
-    assert len(repo.branches) == 2
-    assert branch_1.branch_commit == repo.main_branch.last_commit
-    assert branch_1.name == branch_name
-
-
 def test_duplicate_branch(blank_repo):
     """Test that it's not possible to create branches with the same name"""
     with pytest.raises(BranchException):
@@ -78,44 +142,10 @@ def test_duplicate_branch(blank_repo):
     assert len(blank_repo.branches) == 1
 
 
-def test_first_checkout(repo_with_a_basic_branch, branch_names):
-    """Test that it is possible to checkout a branch"""
-    repo = repo_with_a_basic_branch
-    master, branch_1 = branches(repo, branch_names, num_branches=1)
-
-    assert len(branch_1.commits) == 1
-    assert len(master.commits) == 1
-    assert branch_1.commits[0].parents == [master.commits[0]]
-    assert branch_1.branch_commit == master.commits[0]
-
-
-def test_multiple_checkouts(repo_with_a_complex_branch, branch_names):
-    """Test multiple checkouts of different branches"""
-    repo = repo_with_a_complex_branch
-    master, branch_1 = branches(repo, branch_names, num_branches=1)
-
-    assert len(master.commits) == 2
-    assert len(branch_1.commits) == 3
-    assert branch_1.commits[2].parents == [branch_1.commits[1]]
-    assert branch_1.commits[1].parents == [branch_1.commits[0]]
-    assert branch_1.commits[0].parents == [master.commits[0]]
-    assert master.commits[1].parents == [master.commits[0]]
-
-
 def test_failed_checkout(blank_repo):
     """Test checkout of a non-existent branch fails"""
     with pytest.raises(BranchException):
         blank_repo.checkout("bad/branch")
-
-
-def test_first_merge(repo_with_a_merge, branch_names):
-    """Test that branches can be merged"""
-    master, branch_1 = branches(repo_with_a_merge, branch_names, num_branches=1)
-    merge_commit = master.last_commit
-
-    assert len(master.commits) == 2
-    assert len(branch_1.commits) == 1
-    assert merge_commit.parents == [master.commits[0], branch_1.commits[0]]
 
 
 def test_dupe_merge(blank_repo):
@@ -124,33 +154,112 @@ def test_dupe_merge(blank_repo):
         blank_repo.merge("master")
 
 
+@test_steps("Can't merge empty branch", "Can merge after a commit")
 def test_empty_branch(blank_repo):
     """Test that an empty branch can't be merged but a populated one can"""
     blank_repo.branch("test/branch")
     with pytest.raises(BranchException):
         blank_repo.merge("test/branch")
+    yield
 
     blank_repo.checkout("test/branch")
     blank_repo.commit()
-    blank_repo.checkout("master")
+    blank_repo.checkout(Repo.MAIN_BRANCH)
+    blank_repo.merge("test/branch")
+    yield
+
+
+@test_steps("Can't merge unchanged branch", "Can merge after a commit")
+def test_duplicate_merge(blank_repo):
+    """A branch can't be merged twice if it hasn't changed"""
+    blank_repo.branch("test/branch")
+    blank_repo.checkout("test/branch")
+    blank_repo.commit()
+    blank_repo.checkout(Repo.MAIN_BRANCH)
     blank_repo.merge("test/branch")
 
+    with pytest.raises(BranchException):
+        blank_repo.merge("test/branch")
+    yield
 
-def test_repo_with_multiple_merges(repo_with_multiple_merges, branch_names):
-    _validate_repos(repo_with_multiple_merges, branch_names, 1, [3, 3], [2, 0])
-
-
-def test_repo_main_branch_merged_into_other_branch(
-    repo_main_branch_merged_into_other_branch, branch_names
-):
-    _validate_repos(
-        repo_main_branch_merged_into_other_branch, branch_names, 1, [4, 3], [1, 1]
-    )
+    blank_repo.checkout("test/branch")
+    blank_repo.commit()
+    blank_repo.checkout(Repo.MAIN_BRANCH)
+    blank_repo.merge("test/branch")
+    yield
 
 
-def test_repo_with_multiple_branches(repo_with_multiple_branches, branch_names):
-    _validate_repos(repo_with_multiple_branches, branch_names, 2, [5, 2, 2], [2, 0, 0])
+def test_merge_into_empty_branch(blank_repo):
+    """Test an empty branch can still be merged into"""
+    blank_repo.branch("test/branch/1")
+    blank_repo.branch("test/branch/2")
+    blank_repo.checkout("test/branch/1")
+    blank_repo.commit()
 
 
-def test_repo_with_branch_off_branch(repo_with_branch_off_branch, branch_names):
-    _validate_repos(repo_with_branch_off_branch, branch_names, 2, [5, 2, 2], [2, 0, 0])
+@test_steps(
+    "Multiple merges",
+    "Forward merge",
+    "Multiple Branches",
+    "Branch off branch",
+    "Merge into empty branch",
+)
+def test_scenarios(blank_repo):
+    """Test a number of more complicated repositories"""
+    with optional_step("Multiple Merges") as step:
+        repo = repos.multiple_merges("test/branch")
+        _validate_repo(
+            repo,
+            [
+                BranchInfo(Repo.MAIN_BRANCH, num_commits=3, num_merges=2),
+                BranchInfo("test/branch", num_commits=2, num_merges=0),
+            ],
+        )
+    yield step
+
+    with optional_step("Forward merge") as step:
+        repo = repos.forward_merge("test/branch")
+        _validate_repo(
+            repo,
+            [
+                BranchInfo(Repo.MAIN_BRANCH, num_commits=3, num_merges=1),
+                BranchInfo("test/branch", num_commits=2, num_merges=1),
+            ],
+        )
+    yield step
+
+    with optional_step("Multiple Branches") as step:
+        repo = repos.multiple_branches(["test/branch/1", "test/branch/2"])
+        _validate_repo(
+            repo,
+            [
+                BranchInfo(Repo.MAIN_BRANCH, num_commits=4, num_merges=2),
+                BranchInfo("test/branch/1", num_commits=1, num_merges=0),
+                BranchInfo("test/branch/2", num_commits=1, num_merges=0),
+            ],
+        )
+    yield step
+
+    with optional_step("Branch off branch") as step:
+        repo = repos.branch_off_branch(["test/branch/1", "test/branch/2"])
+        _validate_repo(
+            repo,
+            [
+                BranchInfo(Repo.MAIN_BRANCH, num_commits=3, num_merges=2),
+                BranchInfo("test/branch/1", num_commits=1, num_merges=0),
+                BranchInfo("test/branch/2", num_commits=1, num_merges=0),
+            ],
+        )
+    yield step
+
+    with optional_step("Merge into empty branch") as step:
+        repo = repos.merge_into_empty_branch(["test/branch/1", "test/branch/2"])
+        _validate_repo(
+            repo,
+            [
+                BranchInfo(Repo.MAIN_BRANCH, num_commits=1, num_merges=0),
+                BranchInfo("test/branch/1", num_commits=1, num_merges=1),
+                BranchInfo("test/branch/2", num_commits=1, num_merges=0),
+            ],
+        )
+    yield step

@@ -10,7 +10,7 @@ from itertools import cycle
 from dataclasses import dataclass
 from typing import List, TypeVar, Generator
 
-from gitdraw.repo import Repo, Branch, Commit
+from gitdraw.repo import Repo, Branch, Commit, MergeCommit
 
 SEP = 50
 
@@ -48,6 +48,7 @@ class DrawBranch:
     """A branch line (and associated merges into other branches)"""
 
     name: str
+    idx: int
     start: DrawPoint
     colour: str
     merges: List[DrawMerge]
@@ -58,6 +59,7 @@ class DrawCommit:
     """The position of a commit"""
 
     name: str
+    idx: int
     position: DrawPoint
     branch: DrawBranch
 
@@ -79,6 +81,7 @@ class DrawingTool(ABC):
 
 
 DT = TypeVar("DT", bound=DrawingTool)
+MC = TypeVar("MC", bound=MergeCommit)
 
 
 class Drawer:  # pylint: disable=R0903
@@ -104,11 +107,11 @@ class Drawer:  # pylint: disable=R0903
         for commit in commits:
             if commit.branch.name not in self._branches:
                 self._stage_branch(commit.branch)
-            if len(commit.parents) == 2:
+            if isinstance(commit, MergeCommit):
                 self._add_merge(commit)
             self._stage_commit(commit)
 
-        for _, branch in self._branches.items():
+        for branch in sorted(self._branches.values(), key=lambda x: x.idx):
             self._tool.branch(branch)
         for commit in self._commits:
             self._tool.commit(commit)
@@ -126,13 +129,14 @@ class Drawer:  # pylint: disable=R0903
 
         draw_branch = DrawBranch(
             branch.name,
+            branch.idx,
             DrawPoint(branch_commit.branch.idx * SEP, branch_commit.idx * SEP),
             next(self._colours),
             [],
         )
         self._branches[branch.name] = draw_branch
 
-    def _add_merge(self, commit: Commit):
+    def _add_merge(self, commit: MC):
         """Add a `DrawMerge` to a `DrawBranch`
 
         Given a commit associated with a Merge, find the parent commit
@@ -141,7 +145,7 @@ class Drawer:  # pylint: disable=R0903
 
         :param commit: The merge commit
         """
-        merge_commit, = [p for p in commit.parents if p.branch != commit.branch]
+        merge_commit = commit.merge_commit
         draw_branch = self._branches[merge_commit.branch.name]
         draw_branch.merges.append(
             DrawMerge(
@@ -159,6 +163,7 @@ class Drawer:  # pylint: disable=R0903
         self._commits.append(
             DrawCommit(
                 commit.name,
+                commit.idx,
                 DrawPoint(commit.branch.idx * SEP, commit.idx * SEP),
                 self._branches[commit.branch.name],
             )

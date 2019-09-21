@@ -6,5 +6,5 @@ import sys
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from gitdraw.repo import Repo, BranchException
+from gitdraw.repo import Repo, BranchException, MergeCommit
 from gitdraw.draw import DrawingTool, Drawer, DrawBranch, DrawCommit
