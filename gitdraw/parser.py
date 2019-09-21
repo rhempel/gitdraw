@@ -124,7 +124,7 @@ def parse_file(file_path: str, repo: Repo) -> Repo:
     :raises InvalidGitCmd: The git command issued was invalid
     """
     with open(file_path, "r") as f:
-        text = f.readlines()
+        text = "\n".join(f.readlines())
 
     return parse_string(text, repo)
 
