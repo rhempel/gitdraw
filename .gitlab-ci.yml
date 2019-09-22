@@ -47,10 +47,7 @@ samples:
 
 Update PyPI:
   stage: Deploy
-  variables:
-    TWINE_USERNAME: $PYPI_PASS
-    TWINE_PASSWORD: $PYPI_USER
   script:
-    - twine upload dist/*
+    - twine upload -u $PYPI_USER -p $PYPI_PASS dist/*
   only:
     - tags
