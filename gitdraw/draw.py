@@ -9,8 +9,8 @@ from abc import ABC, abstractmethod
 from itertools import cycle
 from dataclasses import dataclass
 from typing import List, TypeVar, Generator
-from palettable.colorbrewer.qualitative import Dark2_8
-from palettable.tableau import TableauMedium_10
+from palettable.colorbrewer.qualitative import Dark2_8  # type: ignore
+from palettable.tableau import TableauMedium_10  # type: ignore
 
 from gitdraw.repo import Repo, Branch, Commit, MergeCommit
 
