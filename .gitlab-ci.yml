@@ -36,4 +36,7 @@ samples:
   script: python -m samples.generate
   artifacts:
     paths:
-      - samples/sample2.svg
+      - samples/simple_branch.svg
+      - samples/merges.svg
+      - samples/forward_merges.svg
+      - samples/multiple_branches.svg
