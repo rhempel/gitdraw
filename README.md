@@ -6,7 +6,7 @@ A simple tool for generating git graphs from a set of git commands
 
 ### Installing
 
-Install using pip
+Either clone directly from the repo or install using pip
 ```bash
 pip install gitdraw
 ```
@@ -30,6 +30,18 @@ The tool is run using `python3.7`. For help text use:
 ```bash
 python3.7 -m gitdraw.__main__ -h
 ```
+
+It takes a single input file containing a list of git commands and
+outputs a SVG representation
+```bash
+python3.7 -m gitdraw.__main__ -i infile
+```
+
+The tool currently supports the following commands:
+* `git checkout <branch>`
+* `git commit`
+* `git branch <branch>`
+* `git merge <branch>`
 
 ## Built With
 
