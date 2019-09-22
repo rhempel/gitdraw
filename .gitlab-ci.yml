@@ -20,7 +20,7 @@ mypy:
 
 pylint:
   stage: Static Analysis
-  allow_failure: trueN
+  allow_failure: true
   script:
   - pylint tests
   - pylint gitdraw
