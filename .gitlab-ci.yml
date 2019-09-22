@@ -3,8 +3,8 @@ image: "python:3.7"
 before_script:
   - python --version
   - pip install -r requirements.txt
-   - pip install twine
-   - python setup.py sdist bdist_wheel
+  - pip install twine
+  - python setup.py sdist bdist_wheel
 
 stages:
   - Static Analysis
