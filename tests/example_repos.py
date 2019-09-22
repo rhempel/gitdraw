@@ -26,7 +26,6 @@ def branch_with_commits(branch_name):
     """
     repo = Repo()
     repo.branch(branch_name)
-    repo.branch(branch_name)
     repo.checkout(branch_name)
     repo.commit()
     repo.commit()

@@ -1,0 +1,8 @@
+git branch feature
+git checkout feature
+git commit
+git commit
+git checkout master
+git commit
+git checkout feature
+git commit
