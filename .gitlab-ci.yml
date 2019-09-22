@@ -3,11 +3,14 @@ image: "python:3.7"
 before_script:
   - python --version
   - pip install -r requirements.txt
+  - pip install twine
+  - python setup.py sdist bdist_wheel
 
 stages:
   - Static Analysis
   - Test
   - Build Artifacts
+  - Deploy
 
 black:
   stage: Static Analysis
@@ -41,3 +44,13 @@ samples:
       - samples/forward_merges.svg
       - samples/multiple_branches.svg
       - samples/multiple_branches_dm.svg
+
+Update PyPI:
+  stage: Deploy
+  variables:
+    TWINE_USERNAME: $PYPI_PASS
+    TWINE_PASSWORD: $PYPI_USER
+  script:
+    - twine upload dist/*
+  only:
+    - tags
