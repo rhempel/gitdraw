@@ -36,4 +36,4 @@ samples:
   script: python -m samples.generate
   artifacts:
     paths:
-      - samples/sample2.img
+      - samples/sample2.svg
