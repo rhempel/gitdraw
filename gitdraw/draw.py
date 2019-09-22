@@ -9,22 +9,12 @@ from abc import ABC, abstractmethod
 from itertools import cycle
 from dataclasses import dataclass
 from typing import List, TypeVar, Generator
+from palettable.colorbrewer.qualitative import Dark2_8
+from palettable.tableau import TableauMedium_10
 
 from gitdraw.repo import Repo, Branch, Commit, MergeCommit
 
 SEP = 50
-
-COLOURS = [
-    "#002b36",
-    "#268bd2",
-    "#859900",
-    "#cb4b16",
-    "#2aa198",
-    "#dc322f",
-    "#d33682",
-    "#6c71c4",
-    "#b58900",
-]
 
 
 @dataclass
@@ -76,7 +66,7 @@ class DrawingTool(ABC):
         """Adds a commit into the Repo"""
 
     @abstractmethod
-    def render(self) -> str:
+    def render(self, dark_mode=False) -> str:
         """Draws the git repo"""
 
 
@@ -87,11 +77,12 @@ MC = TypeVar("MC", bound=MergeCommit)
 class Drawer:  # pylint: disable=R0903
     """Uses a `DrawingTool` to draw a `Repo`"""
 
-    def __init__(self):
+    def __init__(self, dark_mode=False):
         self._tool = None
+        self._dark_mode = dark_mode
         self._branches = {}
         self._commits = []
-        self._colours = colours()
+        self._colours = colours(dark_mode)
 
     def draw_repo(self, repo: Repo, drawer: DT) -> str:
         """Draw a picture of a `Repo` using a `DrawingTool
@@ -116,7 +107,7 @@ class Drawer:  # pylint: disable=R0903
         for commit in self._commits:
             self._tool.commit(commit)
 
-        return self._tool.render()
+        return self._tool.render(self._dark_mode)
 
     def _stage_branch(self, branch: Branch):
         """Create a `DrawBranch` object ready for adding to the `DrawingTool`
@@ -170,13 +161,14 @@ class Drawer:  # pylint: disable=R0903
         )
 
 
-def colours() -> Generator[str, None, None]:
+def colours(dark_mode=False) -> Generator[str, None, None]:
     """Generate a repeating list of colours to use for branches
 
     The first colour is reserved exclusively for the main branch
     all other colours can be repeated.
     """
-    main_colour, *other_colours = COLOURS
+    colours = Dark2_8.hex_colors if dark_mode else TableauMedium_10.hex_colors
+    main_colour, *other_colours = colours
     another_colour = cycle(other_colours)
     yield main_colour
     while True:

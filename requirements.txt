@@ -8,3 +8,4 @@ pytest-steps>=1.6.2
 pre-commit>=1.18.3
 jinja2>=2.10.1
 parsimonious>=0.8.1
+palettable>=3.3.0

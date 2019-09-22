@@ -1,19 +1,29 @@
+{% if dark_mode -%}
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-10 -10 488 970" style="background: black">
+{% else %}
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="-10 -10 488 970">
+{%- endif %}
 <style type="text/css"><![CDATA[
 .branch {
   fill: none;
   stroke-width: 10;
   stroke-linecap: round;
 }
+{% if dark_mode -%}
+.commit {
+  fill: #000;
+  stroke-width: 5;
+}
+.label-text {
+  font-family: Inconsolata, Consolas, monospace;
+  font-size: 14px;
+  fill: #000;
+  stroke: none;
+}
+{% else %}
 .commit {
   fill: #fff;
   stroke-width: 5;
-}
-.label-tag {
-  fill: #333;
-}
-.label-rect {
-  stroke: none;
 }
 .label-text {
   font-family: Inconsolata, Consolas, monospace;
@@ -21,6 +31,14 @@
   fill: #fff;
   stroke: none;
 }
+{%- endif %}
+.label-tag {
+  fill: #333;
+}
+.label-rect {
+  stroke: none;
+}
+
 {% for branch in branches %}
 .branch-{{ branch.name }} {stroke: {{ branch.colour }}; fill: {{ branch.colour }}}
 {% endfor %}
@@ -42,7 +60,7 @@
 <g class="branch-{{ branch.name }}">
   <path class="branch" d="{{ branch.middle_path.svg }}" />
 {% for commit in branch.commits -%}
-  <circle class="commit" cx="{{ commit.position.x }}" cy="{{ commit.position.y }}" r="7.5" />
+  <circle class="commit" cx="{{ commit.position.x }}" cy="{{ commit.position.y }}" r="7.5"/>
 {%- endfor %}
   <g class="label-branch" transform="translate({{ branch.label.position.x }}, {{ branch.label.position.y }})">
     <rect x="0" y="-14" width="{{ branch.label.width + 10 }}" height="24" rx="3" class="label-rect" />

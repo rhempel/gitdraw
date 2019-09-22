@@ -150,10 +150,10 @@ class SvgDrawingTool(DrawingTool):
         self._max_y = max([self._max_y, commit.position.y])
         self._max_x = max([self._max_x, commit.position.x])
 
-    def render(self) -> str:
+    def render(self, dark_mode=False) -> str:
         """Draw all branches and commits added so far"""
         for branch in self._branches:
             branch.max_y = self._max_y + SEP
             branch.max_x = self._max_x + SEP
 
-        return self._template.render(branches=self._branches)
+        return self._template.render(branches=self._branches, dark_mode=dark_mode)
