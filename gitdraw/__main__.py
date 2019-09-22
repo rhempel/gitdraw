@@ -51,6 +51,8 @@ def main() -> int:
         with open(args.output, "w") as outfile:
             outfile.write(output)
 
+    return 0
+
 
 if __name__ == "__main__":
     exit(main())
