@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
-"""A concrete `DrawingTool` for creating SVG graphs"""
+"""A concrete `DrawingTool` for creating SVG graphs
+
+TODO support '/' in branch names
+"""
 from dataclasses import dataclass, field
 from typing import List, Tuple, Optional
 from jinja2 import Environment, PackageLoader, select_autoescape
@@ -133,6 +136,7 @@ class SvgDrawingTool(DrawingTool):
         self._branches.append(
             SvgBranch(
                 merges=[SvgMerge(m.start, m.end) for m in branch.merges],
+                idx=branch.idx,
                 name=branch.name,
                 start=branch.start,
                 colour=branch.colour,
@@ -146,10 +150,10 @@ class SvgDrawingTool(DrawingTool):
         self._max_y = max([self._max_y, commit.position.y])
         self._max_x = max([self._max_x, commit.position.x])
 
-    def render(self) -> str:
+    def render(self, dark_mode: bool = False) -> str:
         """Draw all branches and commits added so far"""
         for branch in self._branches:
             branch.max_y = self._max_y + SEP
             branch.max_x = self._max_x + SEP
 
-        return self._template.render(branches=self._branches)
+        return self._template.render(branches=self._branches, dark_mode=dark_mode)

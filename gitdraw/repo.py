@@ -32,6 +32,10 @@ class BranchException(Exception):
     """Raised for issues associated with `Branch`"""
 
 
+class CommitException(Exception):
+    """Raised for issues associated with `Commits`"""
+
+
 @dataclass
 class Commit:
     """A git commit object"""
@@ -41,6 +45,32 @@ class Commit:
     message: str
     parents: List[Any]
     branch: Any
+
+
+@dataclass
+class MergeCommit(Commit):
+    """A git commit that resulted from a merge"""
+
+    @property
+    def merge_commit(self):
+        """The last commit in the branch that was merged"""
+        return next(c for c in self.parents if c.branch == self._from_branch)
+
+    @property
+    def _from_branch(self):
+        """The branch that was merged"""
+        from_commits = [fc for fc in self.parents if fc.branch != self.branch]
+        if len(from_commits) == 1:
+            return from_commits[0].branch
+
+        for commit in from_commits:
+            if commit.branch != self.branch.branch_commit.branch:
+                branch = commit.branch
+                break
+        else:
+            raise RuntimeError("Unexpected error occurred")
+
+        return branch
 
 
 @dataclass
@@ -102,6 +132,11 @@ class Repo:
         except KeyError:
             raise BranchException(f"No branch named {name}")
 
+    @property
+    def main_branch(self):
+        """Return the main branch"""
+        return self._branch_from_name(self.MAIN_BRANCH)
+
     def checkout(self, branch_name: str):
         """Checkout a `Branch` that exists in the `Repo`
 
@@ -159,7 +194,10 @@ class Repo:
             raise BranchException(f"Cannot merge into self")
         if not branch.can_merge:
             raise BranchException(f"Branch cannot be merged")
-        commit = Commit(
+        if branch.last_commit in self._active_branch.last_commit.parents:
+            raise BranchException(f"Branch already merged")
+
+        commit = MergeCommit(
             next(self._commit_name),
             next(self._commit_idx),
             f"Merge {branch.name} -> {self._active_branch.name}",

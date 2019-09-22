@@ -1,8 +1,15 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=W0621
 """Testing of the `Drawing` object"""
-import pytest
-from .context import DrawingTool, Repo, Drawer, DrawBranch, DrawCommit
+from collections import namedtuple
+from pytest_steps import test_steps, optional_step
+
+from tests.context import DrawingTool, Repo, Drawer, DrawBranch, DrawCommit
+import tests.example_repos as repos
+
+BranchInfo = namedtuple(
+    "BranchInfo", "name num_commits num_merges start", defaults=[None]
+)
 
 
 class MockDrawingTool(DrawingTool):
@@ -21,98 +28,213 @@ class MockDrawingTool(DrawingTool):
         """Adds a commit into the Repo"""
         self.commits.append(commit)
 
-    def render(self) -> str:
+    def render(self, dark_mode: bool = False) -> str:
         """Draws the git repo"""
         return "rendered"
 
+    def __str__(self):
+        return f"MockDrawingTool:\n {self.branches}\n {self.commits}"
 
-@pytest.fixture
-def drawing_tool():
-    """A concrete mocked out `DrawingTool`"""
-    return MockDrawingTool()
-
-
-@pytest.fixture
-def repo():
-    """An empty `Repo` used by tests"""
-    return Repo()
+    def __repr__(self):
+        return str(self)
 
 
-@pytest.fixture
-def drawer():
-    """An empty `Drawer` used by tests"""
-    return Drawer()
+def _commits_aligned_and_ordered(commits):
+    """Verify commits are aligned vertically and ordered horizontally
 
-
-def test_basic_draw(drawer, drawing_tool, repo):
-    """"draw a repo with a single commit"""
-    drawer.draw_repo(repo, drawing_tool)
-
-    assert len(drawing_tool.branches) == 1
-    assert drawing_tool.branches[0].name == Repo.MAIN_BRANCH
-    assert drawing_tool.branches[0].merges == []
-    assert drawing_tool.branches[0].start == drawing_tool.commits[0].position
-
-    assert len(drawing_tool.commits) == 1
-    assert drawing_tool.commits[0].branch.name == drawing_tool.branches[0].name
-
-
-def test_drawing_a_single_branch(drawer, drawing_tool, repo):
-    """draw a repo with 5 commits"""
-    for _ in range(4):
-        repo.commit()
-    drawer.draw_repo(repo, drawing_tool)
-
-    assert len(drawing_tool.branches) == 1
-    assert len(drawing_tool.commits) == 5
-
-    # Checks commits are aligned vertically, and ordered horizontally
-    for idx, commit in enumerate(drawing_tool.commits):
-        for other_commit in drawing_tool.commits[idx + 1 :]:
+    :param commits: An ordered list of commits to verify
+    """
+    for idx, commit in enumerate(commits):
+        for other_commit in commits[idx + 1 :]:
             assert commit.position.x == other_commit.position.x
             assert commit.position.y < other_commit.position.y
 
 
-def test_drawing_multiple_branches(drawer, drawing_tool, repo):
-    """draw a repo with two branches"""
-    repo.branch("test/branch")
-    repo.checkout("test/branch")
-    repo.commit()
-    drawer.draw_repo(repo, drawing_tool)
+def _branches_ordered(tool):
+    """Verify branches are ordered vertically
 
-    assert len(drawing_tool.branches) == 2
-    assert len(drawing_tool.commits) == 2
-
-    assert drawing_tool.branches[1].name == "test/branch"
-    assert drawing_tool.branches[1].start == drawing_tool.commits[0].position
-
-    main_commit_pos_x = drawing_tool.commits[0].position.x
-    main_commit_pos_y = drawing_tool.commits[0].position.y
-    branch_commit_pos_x = drawing_tool.commits[1].position.x
-    branch_commit_pos_y = drawing_tool.commits[1].position.y
-
-    assert main_commit_pos_x < branch_commit_pos_x
-    assert main_commit_pos_y < branch_commit_pos_y
+    :param tool: The `DrawingTool` containing the branches
+    """
+    for idx, branch in enumerate(tool.branches):
+        for other_branch in tool.branches[idx + 1 :]:
+            # Get branch position by finding a commit associated with the branch
+            branch_commit = next(c for c in tool.commits if c.branch == branch)
+            other_commit = next(c for c in tool.commits if c.branch == other_branch)
+            assert branch_commit.position.x < other_commit.position.x
 
 
-def test_drawing_a_merge(drawer, drawing_tool, repo):
-    """draw a repo where one branches merges into another"""
-    repo.branch("test/branch")
-    repo.checkout("test/branch")
-    repo.commit()
-    repo.checkout("master")
-    repo.merge("test/branch")
+def _validate_merges(merges):
+    """Check a merge looks sensible"""
+    for merge in merges:
+        assert merge.start.x != merge.end.x
+        assert merge.start.y < merge.end.y
 
-    drawer.draw_repo(repo, drawing_tool)
 
-    assert len(drawing_tool.branches) == 2
-    assert len(drawing_tool.commits) == 3
+def _validate_tool(tool, branch_info):
+    """Verify a `DrawingTool` looks sensible
 
-    assert not drawing_tool.branches[0].merges
-    assert len(drawing_tool.branches[1].merges) == 1
+    :param tool: The `DrawingTool` to verify
+    :param branch_info: A list of `BranchInfo` for branches in the tool
+    """
+    assert len(tool.branches) == len(branch_info)
+    assert sorted(b.name for b in tool.branches) == sorted(b.name for b in branch_info)
+    assert len(tool.commits) == sum(b.num_commits for b in branch_info)
+    _branches_ordered(tool)
 
-    merge_start = drawing_tool.branches[1].merges[0].start
-    merge_end = drawing_tool.branches[1].merges[0].end
+    for branch in tool.branches:
+        branch_commits = [c for c in tool.commits if c.branch == branch]
+        info = next(b for b in branch_info if b.name == branch.name)
+        assert len(branch_commits) == info.num_commits
+        assert len(branch.merges) == info.num_merges
 
-    assert merge_start == drawing_tool.commits[1].position
-    assert merge_end == drawing_tool.commits[2].position
+        if info.start is not None:
+            assert branch.start == info.start
+
+        _commits_aligned_and_ordered(branch_commits)
+        _validate_merges(branch.merges)
+
+
+@test_steps(
+    "Blank repository",
+    "Make a commit",
+    "Create a branch",
+    "Checkout new branch",
+    "Merge branch",
+)
+def test_basic_drawing(blank_repo):
+    """"draw a repo with a single commit"""
+    drawing_tool, drawer = MockDrawingTool(), Drawer()
+    drawer.draw_repo(blank_repo, drawing_tool)
+    main_start = drawing_tool.commits[0].position
+    _validate_tool(
+        drawing_tool,
+        [BranchInfo(Repo.MAIN_BRANCH, num_commits=1, num_merges=0, start=main_start)],
+    )
+    yield
+
+    blank_repo.commit()
+
+    drawing_tool, drawer = MockDrawingTool(), Drawer()
+    drawer.draw_repo(blank_repo, drawing_tool)
+    _validate_tool(
+        drawing_tool,
+        [BranchInfo(Repo.MAIN_BRANCH, num_commits=2, num_merges=0, start=main_start)],
+    )
+    yield
+
+    blank_repo.branch("test/branch")
+
+    drawing_tool, drawer = MockDrawingTool(), Drawer()
+    drawer.draw_repo(blank_repo, drawing_tool)
+    branch_start = drawing_tool.commits[1].position
+    _validate_tool(
+        drawing_tool,
+        [BranchInfo(Repo.MAIN_BRANCH, num_commits=2, num_merges=0, start=main_start)],
+    )
+    yield
+
+    blank_repo.checkout("test/branch")
+    blank_repo.commit()
+
+    drawing_tool, drawer = MockDrawingTool(), Drawer()
+    drawer.draw_repo(blank_repo, drawing_tool)
+    _validate_tool(
+        drawing_tool,
+        [
+            BranchInfo(Repo.MAIN_BRANCH, num_commits=2, num_merges=0, start=main_start),
+            BranchInfo("test/branch", num_commits=1, num_merges=0, start=branch_start),
+        ],
+    )
+    yield
+
+    blank_repo.checkout(Repo.MAIN_BRANCH)
+    blank_repo.merge("test/branch")
+
+    drawing_tool, drawer = MockDrawingTool(), Drawer()
+    drawer.draw_repo(blank_repo, drawing_tool)
+    _validate_tool(
+        drawing_tool,
+        [
+            BranchInfo(Repo.MAIN_BRANCH, num_commits=3, num_merges=0, start=main_start),
+            BranchInfo("test/branch", num_commits=1, num_merges=1, start=branch_start),
+        ],
+    )
+    yield
+
+
+@test_steps(
+    "Multiple merges",
+    "Forward merge",
+    "Multiple Branches",
+    "Branch off branch",
+    "Merge into empty branch",
+)
+def test_drawing_repos():
+    """Draw a number of different repos"""
+    with optional_step("Multiple Merges") as step:
+        repo = repos.multiple_merges("test/branch")
+        drawing_tool, drawer = MockDrawingTool(), Drawer()
+        drawer.draw_repo(repo, drawing_tool)
+        _validate_tool(
+            drawing_tool,
+            [
+                BranchInfo(Repo.MAIN_BRANCH, num_commits=3, num_merges=0),
+                BranchInfo("test/branch", num_commits=2, num_merges=2),
+            ],
+        )
+    yield step
+
+    with optional_step("Forward merge") as step:
+        repo = repos.forward_merge("test/branch")
+        drawing_tool, drawer = MockDrawingTool(), Drawer()
+        drawer.draw_repo(repo, drawing_tool)
+        _validate_tool(
+            drawing_tool,
+            [
+                BranchInfo(Repo.MAIN_BRANCH, num_commits=3, num_merges=1),
+                BranchInfo("test/branch", num_commits=2, num_merges=1),
+            ],
+        )
+    yield step
+
+    with optional_step("Multiple Branches") as step:
+        repo = repos.multiple_branches(["test/branch/1", "test/branch/2"])
+        drawing_tool, drawer = MockDrawingTool(), Drawer()
+        drawer.draw_repo(repo, drawing_tool)
+        _validate_tool(
+            drawing_tool,
+            [
+                BranchInfo(Repo.MAIN_BRANCH, num_commits=4, num_merges=0),
+                BranchInfo("test/branch/1", num_commits=1, num_merges=1),
+                BranchInfo("test/branch/2", num_commits=1, num_merges=1),
+            ],
+        )
+    yield step
+
+    with optional_step("Branch off branch") as step:
+        repo = repos.branch_off_branch(["test/branch/1", "test/branch/2"])
+        drawing_tool, drawer = MockDrawingTool(), Drawer()
+        drawer.draw_repo(repo, drawing_tool)
+        _validate_tool(
+            drawing_tool,
+            [
+                BranchInfo(Repo.MAIN_BRANCH, num_commits=3, num_merges=0),
+                BranchInfo("test/branch/1", num_commits=1, num_merges=1),
+                BranchInfo("test/branch/2", num_commits=1, num_merges=1),
+            ],
+        )
+    yield step
+
+    with optional_step("Merge into empty branch") as step:
+        repo = repos.merge_into_empty_branch(["test/branch/1", "test/branch/2"])
+        drawing_tool, drawer = MockDrawingTool(), Drawer()
+        drawer.draw_repo(repo, drawing_tool)
+        _validate_tool(
+            drawing_tool,
+            [
+                BranchInfo(Repo.MAIN_BRANCH, num_commits=1, num_merges=0),
+                BranchInfo("test/branch/1", num_commits=1, num_merges=0),
+                BranchInfo("test/branch/2", num_commits=1, num_merges=1),
+            ],
+        )
+    yield step

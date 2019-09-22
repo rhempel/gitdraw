@@ -1,30 +1,58 @@
 #!/uar/bin/python3.7
 # -*- coding: utf-8 -*-
-"""Prototype script that creates an SVG image of a git `Repo`
+"""Prototype script that creates an SVG image of a git `Repo`"""
+import argparse
+from gitdraw import (
+    parse_file,
+    GitParseError,
+    InvalidGitCmd,
+    Drawer,
+    SvgDrawingTool,
+    Repo,
+)
 
-ToDo:
-  * wrap with command line args
-  * accept and parse an input file
-  * testing of Drawer and SvgDrawingTool
-"""
-from gitdraw.draw import Drawer
-from gitdraw.repo import Repo
-from gitdraw.svg_draw import SvgDrawingTool
+FAILED_PARSE = 3
+BAD_COMMANDS = 4
+
+
+def get_parser() -> argparse.ArgumentParser:
+    """The command line parser"""
+    parser = argparse.ArgumentParser(description="GitDraw")
+    parser.add_argument("-o", "--output", help="Output file name", default="stdout")
+    parser.add_argument(
+        "-d", "--darkmode", action="store_true", help="Render in dark mode"
+    )
+
+    required_named = parser.add_argument_group("required named arguments")
+    required_named.add_argument("-i", "--input", help="Input file name", required=True)
+    return parser
+
+
+def main() -> int:
+    """Main program path"""
+    parser = get_parser()
+    args = parser.parse_args()
+
+    try:
+        repo = parse_file(args.input, Repo())
+    except GitParseError as exception:
+        print(exception)
+        return FAILED_PARSE
+    except InvalidGitCmd as exception:
+        print(exception)
+        return BAD_COMMANDS
+
+    drawer = Drawer(dark_mode=args.darkmode)
+    output = drawer.draw_repo(repo, SvgDrawingTool())
+
+    if args.output == "stdout":
+        print(output)
+    else:
+        with open(args.output, "w") as outfile:
+            outfile.write(output)
+
+    return 0
+
 
 if __name__ == "__main__":
-    REPO = Repo()
-    REPO.branch("gitdraw")
-    REPO.checkout("gitdraw")
-    REPO.commit()
-    REPO.branch("feature")
-    REPO.checkout("feature")
-    REPO.commit()
-    REPO.checkout("master")
-    REPO.commit()
-    REPO.merge("gitdraw")
-
-    DRAWER = Drawer()
-    OUT = DRAWER.draw_repo(REPO, SvgDrawingTool())
-
-    with open("img.svg", "w") as f:
-        f.write(OUT)
+    exit(main())
