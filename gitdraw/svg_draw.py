@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
-"""A concrete `DrawingTool` for creating SVG graphs"""
+"""A concrete `DrawingTool` for creating SVG graphs
+
+TODO support '/' in branch names
+"""
 from dataclasses import dataclass, field
 from typing import List, Tuple, Optional
 from jinja2 import Environment, PackageLoader, select_autoescape

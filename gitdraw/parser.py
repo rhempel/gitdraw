@@ -6,6 +6,8 @@ from parsimonious.nodes import NodeVisitor  # type: ignore
 from parsimonious.exceptions import ParseError, VisitationError  # type: ignore
 from gitdraw.repo import Repo
 
+LOG = logging.getLogger(__name__)
+
 
 class GitParseError(ParseError):
     """Error raised when we can't parse a file"""
@@ -45,7 +47,6 @@ class InvalidGitCmd(Exception):
         return cls(str(error))
 
 
-LOG = logging.getLogger(__name__)
 GRAMMAR = Grammar(
     """
     cmds     = gitcmd*

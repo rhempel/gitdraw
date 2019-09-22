@@ -26,28 +26,28 @@
 {% endfor %}
 ]]></style>
 <g class="merge">
-{% for branch in branches %}
+{% for branch in branches -%}
   <g class="branch-{{ branch.name }}">
     <path class="branch" d="{{ branch.start_path.svg }}" />
-{% for merge in branch.merges %}
+{% for merge in branch.merges -%}
     <path class="branch" d="{{ merge.path.svg }}" />
-{% endfor %}
-{% if branch.end_path != None %}
+{%- endfor %}
+{% if branch.end_path != None -%}
     <path class="branch" d="{{ branch.end_path.svg }}" />
-{% endif %}
+{%- endif %}
   </g>
-{% endfor %}
+{%- endfor %}
 </g>
-{% for branch in branches %}
+{% for branch in branches -%}
 <g class="branch-{{ branch.name }}">
   <path class="branch" d="{{ branch.middle_path.svg }}" />
-{% for commit in branch.commits %}
+{% for commit in branch.commits -%}
   <circle class="commit" cx="{{ commit.position.x }}" cy="{{ commit.position.y }}" r="7.5" />
-{% endfor %}
+{%- endfor %}
   <g class="label-branch" transform="translate({{ branch.label.position.x }}, {{ branch.label.position.y }})">
     <rect x="0" y="-14" width="{{ branch.label.width + 10 }}" height="24" rx="3" class="label-rect" />
     <text x="5" y="2" textLength="{{ branch.label.width }}" class="label-text">{{ branch.name }}</text>
   </g>
 </g>
-{% endfor %}
+{%- endfor %}
 </svg>
