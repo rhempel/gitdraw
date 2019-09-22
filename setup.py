@@ -6,8 +6,9 @@ import setuptools
 # venv\Scripts\python.exe setup.py sdist bdist_wheel
 # venv\Scripts\twine.exe upload dist/*
 
-assert os.environ.get("CI_COMMIT_TAG")
 version = os.environ["CI_COMMIT_TAG"]
+if not version:
+    exit()
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
