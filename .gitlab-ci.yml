@@ -7,6 +7,7 @@ before_script:
 stages:
   - Static Analysis
   - Test
+  - Build Artifacts
 
 black:
   stage: Static Analysis
@@ -29,3 +30,10 @@ pytest:
   stage: Test
   script:
   - pytest --showlocals -v --cov=gitdraw --cov-branch --cov-report term-missing tests
+
+samples:
+  stage: Build Artifacts
+  script: python -m samples.generate
+  artifacts:
+    paths:
+      - samples/sample2.img

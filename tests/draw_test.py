@@ -28,7 +28,7 @@ class MockDrawingTool(DrawingTool):
         """Adds a commit into the Repo"""
         self.commits.append(commit)
 
-    def render(self) -> str:
+    def render(self, dark_mode: bool = False) -> str:
         """Draws the git repo"""
         return "rendered"
 

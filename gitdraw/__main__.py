@@ -15,7 +15,7 @@ FAILED_PARSE = 3
 BAD_COMMANDS = 4
 
 
-def get_parser():
+def get_parser() -> argparse.ArgumentParser:
     """The command line parser"""
     parser = argparse.ArgumentParser(description="GitDraw")
     parser.add_argument("-o", "--output", help="Output file name", default="stdout")
@@ -28,7 +28,7 @@ def get_parser():
     return parser
 
 
-def main():
+def main() -> int:
     """Main program path"""
     parser = get_parser()
     args = parser.parse_args()

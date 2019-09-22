@@ -66,7 +66,7 @@ class DrawingTool(ABC):
         """Adds a commit into the Repo"""
 
     @abstractmethod
-    def render(self, dark_mode=False) -> str:
+    def render(self, dark_mode: bool = False) -> str:
         """Draws the git repo"""
 
 
