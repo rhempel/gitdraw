@@ -1,7 +1,7 @@
 #!/uar/bin/python3.7
 # -*- coding: utf-8 -*-
 """Create images from all samples"""
-from typing import List, Tuple
+from typing import Iterator, Tuple
 from glob import glob
 from gitdraw import parse_file, Repo, Drawer, SvgDrawingTool
 
@@ -18,10 +18,10 @@ def generate_img(inpath: str, outpath: str):
         outfile.write(output)
 
 
-def samples(directory: str) -> List[Tuple[str, str]]:
+def samples(directory: str) -> Iterator[Tuple[str, str]]:
     """Find sample files and the determine name of matching image"""
     sample_files = glob(f"{directory}/*.txt")
-    out_files = [f"{s[:-4]}.img" for s in sample_files]
+    out_files = [f"{s[:-4]}.svg" for s in sample_files]
     return zip(sample_files, out_files)
 
 
