@@ -46,7 +46,7 @@ samples:
       - samples/multiple_branches_dm.svg
 
 Update PyPI:
-  stage: deploy
+  stage: Deploy
   variables:
     TWINE_USERNAME: $PYPI_PASS
     TWINE_PASSWORD: $PYPI_USER
