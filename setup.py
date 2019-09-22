@@ -1,3 +1,4 @@
+import os
 import setuptools
 
 # Crete new tag & update download url & version
@@ -5,13 +6,16 @@ import setuptools
 # venv\Scripts\python.exe setup.py sdist bdist_wheel
 # venv\Scripts\twine.exe upload dist/*
 
+assert os.environ.get("CI_COMMIT_TAG")
+version = os.environ["CI_COMMIT_TAG"]
+
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
     name="gitdraw",
     packages=["gitdraw"],
-    version="1.0.1",
+    version=version,
     license="MIT",
     description="A simple tool for generating git graphs",
     long_description=long_description,
