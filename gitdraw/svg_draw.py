@@ -156,4 +156,9 @@ class SvgDrawingTool(DrawingTool):
             branch.max_y = self._max_y + SEP
             branch.max_x = self._max_x + SEP
 
-        return self._template.render(branches=self._branches, dark_mode=dark_mode)
+        return self._template.render(
+            branches=self._branches,
+            dark_mode=dark_mode,
+            max_x=self._max_x,
+            max_y=self._max_y,
+        )
