@@ -44,16 +44,16 @@ The following examples are autogeneraed from pipelines
 
 ### [Simple Branch](samples/simple_branch.txt)
 
-<img src="https://gitlab.com/broster/gitdraw/-/jobs/artifacts/master/raw/samples/simple_branch.svg?job=samples"  width="1000" height="1000">
+<img src="https://gitlab.com/broster/gitdraw/-/jobs/artifacts/master/raw/samples/simple_branch.svg?job=samples"  width="300" height="200">
 
 ### [Merges](samples/merges.txt)
 
-![graph2](https://gitlab.com/broster/gitdraw/-/jobs/artifacts/master/raw/samples/merges.svg?job=samples)
+<img src="https://gitlab.com/broster/gitdraw/-/jobs/artifacts/master/raw/samples/merges.svg?job=samples"  width="300" height="200">
 
 ### [Forward Merges](samples/forward_merges.txt)
 
-![graph3](https://gitlab.com/broster/gitdraw/-/jobs/artifacts/master/raw/samples/forward_merges.svg?job=samples)
+<img src="https://gitlab.com/broster/gitdraw/-/jobs/artifacts/master/raw/samples/forward_merges.svg?job=samples"  width="300" height="200">
 
 ### [Multiple Brances](samples/multiple_branches.txt)
 
-![graph4](https://gitlab.com/broster/gitdraw/-/jobs/artifacts/master/raw/samples/multiple_branches.svg?job=samples)
+<img src="https://gitlab.com/broster/gitdraw/-/jobs/artifacts/master/raw/samples/multiple_branches.svg?job=samples"  width="300" height="200">
