@@ -40,3 +40,4 @@ samples:
       - samples/merges.svg
       - samples/forward_merges.svg
       - samples/multiple_branches.svg
+      - samples/multiple_branches-dm.svg
