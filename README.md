@@ -54,6 +54,10 @@ The following examples are autogeneraed from pipelines
 
 <img src="https://gitlab.com/broster/gitdraw/-/jobs/artifacts/master/raw/samples/forward_merges.svg?job=samples"  width="300" height="200">
 
-### [Multiple Brances](samples/multiple_branches.txt)
+### [Multiple Branches](samples/multiple_branches.txt)
 
 <img src="https://gitlab.com/broster/gitdraw/-/jobs/artifacts/master/raw/samples/multiple_branches.svg?job=samples"  width="300" height="200">
+
+### [Dark Mode](samples/multiple_branches.txt)
+
+<img src="https://gitlab.com/broster/gitdraw/-/jobs/artifacts/master/raw/samples/multiple_branches_dm.svg?job=samples"  width="300" height="200">
