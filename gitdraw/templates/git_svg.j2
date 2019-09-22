@@ -12,7 +12,7 @@
 {% if dark_mode -%}
 .commit {
   fill: #000;
-  stroke-width: 5;
+  stroke-width: 6;
 }
 .label-text {
   font-family: Inconsolata, Consolas, monospace;
@@ -20,14 +20,24 @@
   fill: #000;
   stroke: none;
 }
+.commit-text {
+  font-family: Inconsolata, Consolas, monospace;
+  fill: #000;
+  stroke: none;
+}
 {% else %}
 .commit {
-  fill: #fff;
-  stroke-width: 5;
+  fill: none;
+  stroke-width: 6;
 }
 .label-text {
   font-family: Inconsolata, Consolas, monospace;
   font-size: 14px;
+  fill: #fff;
+  stroke: none;
+}
+.commit-text {
+  font-family: Inconsolata, Consolas, monospace;
   fill: #fff;
   stroke: none;
 }
@@ -60,7 +70,15 @@
 <g class="branch-{{ branch.name }}">
   <path class="branch" d="{{ branch.middle_path.svg }}" />
 {% for commit in branch.commits -%}
+{% set length = commit.name | length -%}
   <circle class="commit" cx="{{ commit.position.x }}" cy="{{ commit.position.y }}" r="7.5"/>
+{% if length == 1 -%}
+  <text x="{{ commit.position.x - 4 }}" y="{{ commit.position.y + 4 }}" class="commit-text" font-size="14px">{{ commit.name }}</text>
+{% elif length == 2 %}
+  <text x="{{ commit.position.x - 7 }}" y="{{ commit.position.y + 4 }}" class="commit-text" font-size="12px">{{ commit.name }}</text>
+{% else %}
+  <text x="{{ commit.position.x - 8 }}" y="{{ commit.position.y + 4 }}" class="commit-text" font-size="10px">{{ commit.name }}</text>
+{%- endif %}
 {%- endfor %}
   <g class="label-branch" transform="translate({{ branch.label.position.x }}, {{ branch.label.position.y }})">
     <rect x="0" y="-14" width="{{ branch.label.width + 10 }}" height="24" rx="3" class="label-rect" />

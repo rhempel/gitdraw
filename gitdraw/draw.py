@@ -14,7 +14,7 @@ from palettable.tableau import TableauMedium_10
 
 from gitdraw.repo import Repo, Branch, Commit, MergeCommit
 
-SEP = 50
+SEP = 30
 
 
 @dataclass
