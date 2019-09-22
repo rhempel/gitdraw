@@ -1,12 +1,21 @@
-from distutils.core import setup
+import setuptools
 
-setup(
+# Crete new tag & update download url & version
+# Run:
+# venv\Scripts\python.exe setup.py sdist bdist_wheel
+# venv\Scripts\twine.exe upload dist/*
+
+with open("README.md", "r") as fh:
+    long_description = fh.read()
+
+setuptools.setup(
     name="gitdraw",
     packages=["gitdraw"],
     version="1.0.1",
     license="MIT",
     description="A simple tool for generating git graphs",
-    long_description=open("README.md", "r").read(),
+    long_description=long_description,
+    long_description_content_type="text/markdown",
     author="Samuel Broster",
     author_email="s.h.broster@gmail.com",
     url="https://gitlab.com/broster/gitdraw",
