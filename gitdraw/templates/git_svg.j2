@@ -1,7 +1,7 @@
 {% if dark_mode -%}
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="-10 -10 488 970" style="background: black">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 {{ max_x }} {{ max_y }}" style="background: black">
 {% else %}
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="-10 -10 488 970">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -20 {{ max_x }} {{ max_y + 60 }}">
 {%- endif %}
 <style type="text/css"><![CDATA[
 .branch {
