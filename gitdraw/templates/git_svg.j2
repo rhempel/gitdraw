@@ -1,5 +1,5 @@
 {% if dark_mode -%}
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 {{ max_x }} {{ max_y }}" style="background: black">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -20 {{ max_x }} {{ max_y + 60 }}" style="background: black">
 {% else %}
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -20 {{ max_x }} {{ max_y + 60 }}">
 {%- endif %}
@@ -11,7 +11,7 @@
 }
 {% if dark_mode -%}
 .commit {
-  fill: #000;
+  fill: none;
   stroke-width: 6;
 }
 .label-text {

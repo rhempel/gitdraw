@@ -6,7 +6,7 @@ A simple tool for generating git graphs from a set of git commands
 
 ### Installing
 
-Install using pip
+Either clone directly from the repo or install using pip
 ```bash
 pip install gitdraw
 ```
@@ -31,6 +31,18 @@ The tool is run using `python3.7`. For help text use:
 python3.7 -m gitdraw.__main__ -h
 ```
 
+It takes a single input file containing a list of git commands and
+outputs a SVG representation
+```bash
+python3.7 -m gitdraw.__main__ -i infile
+```
+
+The tool currently supports the following commands:
+* `git checkout <branch>`
+* `git commit`
+* `git branch <branch>`
+* `git merge <branch>`
+
 ## Built With
 
 See [requirements.txt](requirements.txt) for the full details of external
@@ -54,6 +66,10 @@ The following examples are autogeneraed from pipelines
 
 <img src="https://gitlab.com/broster/gitdraw/-/jobs/artifacts/master/raw/samples/forward_merges.svg?job=samples"  width="300" height="200">
 
-### [Multiple Brances](samples/multiple_branches.txt)
+### [Multiple Branches](samples/multiple_branches.txt)
 
 <img src="https://gitlab.com/broster/gitdraw/-/jobs/artifacts/master/raw/samples/multiple_branches.svg?job=samples"  width="300" height="200">
+
+### [Dark Mode](samples/multiple_branches.txt)
+
+<img src="https://gitlab.com/broster/gitdraw/-/jobs/artifacts/master/raw/samples/multiple_branches_dm.svg?job=samples"  width="300" height="200">
