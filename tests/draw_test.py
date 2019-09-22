@@ -169,7 +169,8 @@ def test_basic_drawing(blank_repo):
     "Branch off branch",
     "Merge into empty branch",
 )
-def test_drawing_repos(blank_repo):
+def test_drawing_repos():
+    """Draw a number of different repos"""
     with optional_step("Multiple Merges") as step:
         repo = repos.multiple_merges("test/branch")
         drawing_tool, drawer = MockDrawingTool(), Drawer()

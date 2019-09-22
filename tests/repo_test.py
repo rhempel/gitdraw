@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=W0621
+# pylint: disable=W0621,R0801
 """Testing of the `Repo` object"""
 from functools import partial
 from collections import namedtuple
@@ -204,7 +204,7 @@ def test_merge_into_empty_branch(blank_repo):
     "Branch off branch",
     "Merge into empty branch",
 )
-def test_scenarios(blank_repo):
+def test_scenarios():
     """Test a number of more complicated repositories"""
     with optional_step("Multiple Merges") as step:
         repo = repos.multiple_merges("test/branch")

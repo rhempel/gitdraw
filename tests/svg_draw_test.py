@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=W0621
+# pylint: disable=R0801
 """Testing of the SVG drawing objects"""
 import pytest
 from pytest_steps import test_steps
@@ -42,7 +42,7 @@ def test_invalid_svgpath():
     )
 
     with pytest.raises(PathError):
-        bad.svg
+        bad.svg  # pylint: disable=W0104
 
 
 def test_svg_merge():
@@ -89,6 +89,7 @@ def test_svg_branch():
 
 
 def test_svg_drawing_tool():
+    """Test the tool can draw a branch"""
     tool = SvgDrawingTool()
     branch = DrawBranch(
         name="test/branch",

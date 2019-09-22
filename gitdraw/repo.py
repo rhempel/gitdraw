@@ -65,9 +65,12 @@ class MergeCommit(Commit):
 
         for commit in from_commits:
             if commit.branch != self.branch.branch_commit.branch:
-                return commit.branch
+                branch = commit.branch
+                break
         else:
             raise RuntimeError("Unexpected error occurred")
+
+        return branch
 
 
 @dataclass
@@ -131,6 +134,7 @@ class Repo:
 
     @property
     def main_branch(self):
+        """Return the main branch"""
         return self._branch_from_name(self.MAIN_BRANCH)
 
     def checkout(self, branch_name: str):

@@ -3,4 +3,4 @@
 """The gitdraw package"""
 from gitdraw.parser import parse_file, parse_string
 
-__all__ = [parse_file, parse_string]
+__all__ = ["parse_file", "parse_string"]

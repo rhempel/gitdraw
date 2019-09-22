@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=W1401
 """Example repos for use in testing"""
 from .context import Repo
 
@@ -9,7 +10,8 @@ def hundred_commits():
     Repo: x-x-x-- ... -x-x
     """
     repo = Repo()
-    [repo.commit() for _ in range(100)]
+    for _ in range(100):
+        repo.commit()
     return repo
 
 

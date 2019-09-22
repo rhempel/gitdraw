@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
 """Parsing of git commands"""
 import logging
-from parsimonious.grammar import Grammar
-from parsimonious.nodes import NodeVisitor
-from parsimonious.exceptions import ParseError, VisitationError
+from parsimonious.grammar import Grammar  # type: ignore
+from parsimonious.nodes import NodeVisitor  # type: ignore
+from parsimonious.exceptions import ParseError, VisitationError  # type: ignore
 from gitdraw.repo import Repo
 
 
 class GitParseError(ParseError):
+    """Error raised when we can't parse a file"""
+
     def __str__(self):
         start_pos = self.text[: self.pos].rfind("\n")
         if start_pos != 0:
@@ -30,6 +32,8 @@ class GitParseError(ParseError):
 
 
 class InvalidGitCmd(Exception):
+    """Error raised when a git command is invalid"""
+
     def __init__(self, message):
         """Make the error more obvious"""
         message = message.split("\n")[0]
@@ -47,15 +51,15 @@ GRAMMAR = Grammar(
     cmds     = gitcmd*
     gitcmd   = git cmd ws?
     git      = "git "
-    cmd      = ckt / brch / cmt / mrg 
-    ckt      = "checkout " name 
+    cmd      = ckt / brch / cmt / mrg
+    ckt      = "checkout " name
     brch     = "branch "  name
     cmt      = "commit" cmt_rgz?
     mrg      = "merge " name
     cmt_rgz  = " -m \\"" msg "\\""
     msg      = ~"[^\\"]*"
-    name     = ~"[a-zA-Z0-9\/-_]*[a-zA-Z0-9]"
-    ws       = ~"\s*"
+    name     = ~"[a-zA-Z0-9\\/-_]*[a-zA-Z0-9]"
+    ws       = ~"\\s*"
     """
 )
 
@@ -95,18 +99,18 @@ class GitVisitor(NodeVisitor):
         LOG.debug("Merge %s.", branch_name)
         self.repo.merge(branch_name)
 
-    def visit_name(self, node, _):
+    def visit_name(self, node, _):  # pylint: disable=R0201
         """Return the branch name"""
         LOG.debug("branch name: %s", node.text)
         return node.text
 
-    def visit_cmt_rgz(self, _, visited_children):
+    def visit_cmt_rgz(self, _, visited_children):  # pylint: disable=R0201
         """Extract and return the commit merge"""
         _, msg, _ = visited_children
         LOG.debug("commit message: %s", msg)
         return msg
 
-    def visit_msg(self, node, _):
+    def visit_msg(self, node, _):  # pylint: disable=R0201
         """Return the message"""
         return node.text
 
@@ -123,8 +127,8 @@ def parse_file(file_path: str, repo: Repo) -> Repo:
     :raises GitParseError: The contents of the file was invalid
     :raises InvalidGitCmd: The git command issued was invalid
     """
-    with open(file_path, "r") as f:
-        text = "\n".join(f.readlines())
+    with open(file_path, "r") as my_file:
+        text = "\n".join(my_file.readlines())
 
     return parse_string(text, repo)
 
@@ -138,12 +142,12 @@ def parse_string(git_commands: str, repo: Repo) -> Repo:
     visitor = GitVisitor(repo)
     try:
         tree = GRAMMAR.parse(git_commands)
-    except ParseError as e:
-        raise GitParseError.from_error(e)
+    except ParseError as exception:
+        raise GitParseError.from_error(exception)
 
     try:
         visitor.visit(tree)
-    except VisitationError as e:
-        raise InvalidGitCmd.from_error(e)
+    except VisitationError as exception:
+        raise InvalidGitCmd.from_error(exception)
 
     return visitor.repo
