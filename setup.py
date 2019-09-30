@@ -22,7 +22,6 @@ setuptools.setup(
     description="A simple tool for generating git graphs",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    entry_points={"console_scripts": ["gitdraw=gitdraw.__main__:main"]},
     author="Samuel Broster",
     author_email="s.h.broster@gmail.com",
     url="https://gitlab.com/broster/gitdraw",
