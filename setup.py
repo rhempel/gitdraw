@@ -17,6 +17,7 @@ with open("README.md", "r") as fh:
 setuptools.setup(
     name="gitdraw",
     packages=["gitdraw"],
+    package_data={"gitdraw": ["templates/*.j2"]},
     version=version,
     license="MIT",
     description="A simple tool for generating git graphs",
