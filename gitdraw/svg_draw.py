@@ -44,7 +44,26 @@ class SvgPath:
             return f"M{move.x},{move.y} L{line.x},{line.y}"
 
         c1, c2, c3 = self.curve  # type: ignore pylint: disable=C0103,E0633
-        return f"M{move.x},{move.y} C{c1.x},{c1.y} {c2.x},{c2.y} {c3.x},{c3.y}"
+
+        # Figure out the curve direction and create the correct arc
+        #
+        radius = SEP/2
+
+        if ((c3.y - move.y) > 0):
+            if ((c3.x - move.x) > 0):
+                # Generate an arc that goes right then down (new branch)
+                return f"M{move.x},{move.y} L{c3.x-radius},{move.y} A{radius} {radius}, 0, 0, 1, {c3.x} {move.y+radius} L{c3.x},{c3.y}"
+
+        elif ((c3.y - move.y) < 0):
+            if ((c3.x - move.x) > 0):
+                # Generate an arc that goes down then left (merge from branch)
+                return f"M{move.x},{move.y} L{c3.x-radius},{move.y} A{radius} {radius}, 0, 0, 0, {c3.x} {move.y-radius} L{c3.x},{c3.y}"
+            else:
+                # Generate an arc that goes down then right (merge to branch)
+                return f"M{move.x},{move.y} L{c3.x+radius},{move.y} A{radius} {radius}, 0, 0, 1, {c3.x} {move.y-radius} L{c3.x},{c3.y}"
+
+        else:
+            return f""
 
 
 @dataclass
