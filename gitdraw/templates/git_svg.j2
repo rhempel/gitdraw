@@ -1,7 +1,7 @@
 {% if dark_mode -%}
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -20 {{ max_x }} {{ max_y + 60 }}" style="background: black">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -20 {{ max_x }} {{ max_y + 60 }}" transform="rotate({{ rotate_image }})" style="background: black" >
 {% else %}
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -20 {{ max_x }} {{ max_y + 60 }}">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -20 {{ max_x }} {{ max_y + 60 }}" transform="rotate({{ rotate_image }})" >
 {%- endif %}
 <style type="text/css"><![CDATA[
 .branch {
@@ -11,8 +11,7 @@
 }
 {% if dark_mode -%}
 .commit {
-  fill: none;
-  stroke-width: 6;
+  stroke-width: 10;
 }
 .label-text {
   font-family: Inconsolata, Consolas, monospace;
@@ -28,7 +27,7 @@
 {% else %}
 .commit {
   fill: none;
-  stroke-width: 6;
+  stroke-width: 9;
 }
 .label-text {
   font-family: Inconsolata, Consolas, monospace;
@@ -73,16 +72,16 @@
 {% set length = commit.name | length -%}
   <circle class="commit" cx="{{ commit.position.x }}" cy="{{ commit.position.y }}" r="7.5"/>
 {% if length == 1 -%}
-  <text x="{{ commit.position.x - 4 }}" y="{{ commit.position.y + 4 }}" class="commit-text" font-size="14px">{{ commit.name }}</text>
+  <text x="{{ commit.position.x - 4 }}" y="{{ commit.position.y + 4 }}" class="commit-text" font-size="14px" transform="rotate({{ rotate_commit }} {{ commit.position.x}} {{ commit.position.y}})">{{ commit.name }}</text>
 {% elif length == 2 %}
-  <text x="{{ commit.position.x - 7 }}" y="{{ commit.position.y + 4 }}" class="commit-text" font-size="12px">{{ commit.name }}</text>
+  <text x="{{ commit.position.x - 7 }}" y="{{ commit.position.y + 4 }}" class="commit-text" font-size="12px" transform="rotate({{ rotate_commit }} {{ commit.position.x}} {{ commit.position.y}})">{{ commit.name }}</text>
 {% else %}
-  <text x="{{ commit.position.x - 8 }}" y="{{ commit.position.y + 4 }}" class="commit-text" font-size="10px">{{ commit.name }}</text>
+  <text x="{{ commit.position.x - 8 }}" y="{{ commit.position.y + 4 }}" class="commit-text" font-size="10px" transform="rotate({{ rotate_commit }} {{ commit.position.x}} {{ commit.position.y}})">{{ commit.name }}</text>
 {%- endif %}
 {%- endfor %}
   <g class="label-branch" transform="translate({{ branch.label.position.x }}, {{ branch.label.position.y }})">
-    <rect x="0" y="-14" width="{{ branch.label.width + 10 }}" height="24" rx="3" class="label-rect" />
-    <text x="5" y="2" textLength="{{ branch.label.width }}" class="label-text">{{ branch.name }}</text>
+    <rect x="0" y="-10" width="{{ branch.label.width + 10 }}" height="20" rx="3" class="label-rect" transform="rotate({{ rotate_label }})" />
+    <text x="5" y="4" textLength="{{ branch.label.width }}" class="label-text" transform="rotate({{ rotate_label }})">{{ branch.name }}</text>
   </g>
 </g>
 {%- endfor %}
