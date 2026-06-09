@@ -8,23 +8,30 @@ from gitdraw import parse_file, Repo, Drawer, SvgDrawingTool
 SAMPLE_DIR = "samples"
 
 
-def generate_img(inpath: str, outpath: str, dark_mode: bool = False):
+def generate_img(inpath: str, outpath: str, dark_mode: bool = False, horizontal_mode: bool = False):
     """Generate an image from a sample file"""
     repo = parse_file(inpath, Repo())
-    drawer = Drawer(dark_mode)
+    drawer = Drawer(dark_mode, horizontal_mode)
     output = drawer.draw_repo(repo, SvgDrawingTool())
 
     with open(outpath, "w") as outfile:
         outfile.write(output)
 
 
-def samples(directory: str, dark_mode: bool = False) -> Iterator[Tuple[str, str]]:
+def samples(directory: str, dark_mode: bool = False, horizontal_mode: bool = False) -> Iterator[Tuple[str, str]]:
     """Find sample files and the determine name of matching image"""
     sample_files = glob(f"{directory}/*.txt")
+
+    suffix = ""
+
     if dark_mode:
-        out_files = [f"{s[:-4]}_dm.svg" for s in sample_files]
-    else:
-        out_files = [f"{s[:-4]}.svg" for s in sample_files]
+        suffix += "_dm"
+
+    if horizontal_mode:
+        suffix += "_hm"
+
+    out_files = [f"{s[:-4]}{suffix}.svg" for s in sample_files]
+
     return zip(sample_files, out_files)
 
 
@@ -35,6 +42,12 @@ def main():
 
     for infile, outfile in samples(SAMPLE_DIR, dark_mode=True):
         generate_img(infile, outfile, dark_mode=True)
+
+    for infile, outfile in samples(SAMPLE_DIR, horizontal_mode=True):
+        generate_img(infile, outfile, horizontal_mode=True)
+
+    for infile, outfile in samples(SAMPLE_DIR, dark_mode=True, horizontal_mode=True):
+        generate_img(infile, outfile, dark_mode=True, horizontal_mode=True)
 
 
 if __name__ == "__main__":

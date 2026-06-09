@@ -130,6 +130,9 @@ class SvgDrawingTool(DrawingTool):
         self._template = ENV.get_template("git_svg.j2")
         self._max_y = 0
         self._max_x = 0
+        self._rotate_image = 0
+        self._rotate_label = 0
+        self._rotate_commit = 0
 
     def branch(self, branch: DrawBranch):
         """Add a branch to be drawn"""
@@ -150,15 +153,23 @@ class SvgDrawingTool(DrawingTool):
         self._max_y = max([self._max_y, commit.position.y])
         self._max_x = max([self._max_x, commit.position.x])
 
-    def render(self, dark_mode: bool = False) -> str:
+    def render(self, dark_mode: bool = False, horizontal_mode: bool = False) -> str:
         """Draw all branches and commits added so far"""
         for branch in self._branches:
             branch.max_y = self._max_y + SEP
             branch.max_x = self._max_x + SEP
+
+        if horizontal_mode:
+          self._rotate_image=-90
+          self._rotate_label=45
+          self._rotate_commit=90
 
         return self._template.render(
             branches=self._branches,
             dark_mode=dark_mode,
             max_x=self._max_x,
             max_y=self._max_y,
+            rotate_image=self._rotate_image,
+            rotate_label=self._rotate_label,
+            rotate_commit=self._rotate_commit,
         )

@@ -77,9 +77,10 @@ MC = TypeVar("MC", bound=MergeCommit)
 class Drawer:  # pylint: disable=R0903
     """Uses a `DrawingTool` to draw a `Repo`"""
 
-    def __init__(self, dark_mode=False):
+    def __init__(self, dark_mode=False, horizontal_mode=False):
         self._tool = None
         self._dark_mode = dark_mode
+        self._horizontal_mode = horizontal_mode
         self._branches = {}
         self._commits = []
         self._colours = colours(dark_mode)
@@ -107,7 +108,7 @@ class Drawer:  # pylint: disable=R0903
         for commit in self._commits:
             self._tool.commit(commit)
 
-        return self._tool.render(self._dark_mode)
+        return self._tool.render(self._dark_mode, self._horizontal_mode)
 
     def _stage_branch(self, branch: Branch):
         """Create a `DrawBranch` object ready for adding to the `DrawingTool`

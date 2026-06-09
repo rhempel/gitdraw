@@ -22,6 +22,9 @@ def get_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "-d", "--darkmode", action="store_true", help="Render in dark mode"
     )
+    parser.add_argument(
+        "-h", "--horizontalmode", action="store_true", help="Render in horizontal mode"
+    )
 
     required_named = parser.add_argument_group("required named arguments")
     required_named.add_argument("-i", "--input", help="Input file name", required=True)
@@ -42,7 +45,7 @@ def main() -> int:
         print(exception)
         return BAD_COMMANDS
 
-    drawer = Drawer(dark_mode=args.darkmode)
+    drawer = Drawer(dark_mode=args.darkmode, horizontal_mode=args.horizontalmode)
     output = drawer.draw_repo(repo, SvgDrawingTool())
 
     if args.output == "stdout":
