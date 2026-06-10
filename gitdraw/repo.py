@@ -166,16 +166,19 @@ class Repo:
         self.branches[name] = Branch(name, next(self._branch_idx), branch_commit, [])
         return self._branch_from_name(name)
 
-    def commit(self, message=None) -> Commit:
+    def commit(self, message=None, label=None) -> Commit:
         """Make a commit on the currently active `Branch`
 
         :param message: Add a message to the commit (currently unused)
         """
+
+        commit_name = next(self._commit_name) if label is None else label
         message = "" if message is None else message
         parent = self._active_branch.last_commit
         parents = [] if parent is None else [parent]
+
         commit = Commit(
-            next(self._commit_name),
+            commit_name,
             next(self._commit_idx),
             message,
             parents,

@@ -81,9 +81,14 @@ class GitVisitor(NodeVisitor):
     def visit_cmt(self, _, visited_children):
         """Perform the git commit"""
         if isinstance(visited_children[-1], list):
-            message = visited_children[-1][0]
+            # Parse out the leading characters separated by '::' to make
+            # custom labels.
+            #
+            message_split = visited_children[-1][0].split('::', 1)
+            message = message_split[0] if len(message_split) == 1 else message_split[1]
+            label = message_split[0] if len(message_split) == 2 else None
             LOG.debug("Commit %s.", message)
-            self.repo.commit(message)
+            self.repo.commit(message, label)
         else:
             LOG.debug("Commit.")
             self.repo.commit()

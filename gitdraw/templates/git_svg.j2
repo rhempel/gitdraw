@@ -74,9 +74,9 @@
 {% if length == 1 -%}
   <text x="{{ commit.position.x - 4 }}" y="{{ commit.position.y + 4 }}" class="commit-text" font-size="14px" transform="rotate({{ rotate_commit }} {{ commit.position.x}} {{ commit.position.y}})">{{ commit.name }}</text>
 {% elif length == 2 %}
-  <text x="{{ commit.position.x - 7 }}" y="{{ commit.position.y + 4 }}" class="commit-text" font-size="12px" transform="rotate({{ rotate_commit }} {{ commit.position.x}} {{ commit.position.y}})">{{ commit.name }}</text>
+  <text x="{{ commit.position.x - 8 }}" y="{{ commit.position.y + 4 }}" class="commit-text" font-size="14px" transform="rotate({{ rotate_commit }} {{ commit.position.x}} {{ commit.position.y}})">{{ commit.name }}</text>
 {% else %}
-  <text x="{{ commit.position.x - 8 }}" y="{{ commit.position.y + 4 }}" class="commit-text" font-size="10px" transform="rotate({{ rotate_commit }} {{ commit.position.x}} {{ commit.position.y}})">{{ commit.name }}</text>
+  <text x="{{ commit.position.x - 10 }}" y="{{ commit.position.y + 4 }}" class="commit-text" font-size="12px" transform="rotate({{ rotate_commit }} {{ commit.position.x}} {{ commit.position.y}})">{{ commit.name }}</text>
 {%- endif %}
 {%- endfor %}
   <g class="label-branch" transform="translate({{ branch.label.position.x }}, {{ branch.label.position.y }})">
